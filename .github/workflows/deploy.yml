@@ -47,11 +47,12 @@ jobs:
       # - name: Install custom built databricks-sql dialect
       - name: Update dbx-repo in the Databricks environment
         run: |
-          databricks repos update --path /Repos/dbx-repo/git_dbx_cicd --branch "main"
+          databricks repos update /Repos/dbx-repo/git_dbx_cicd --branch "main"
+      # databricks repos update --path /Repos/dbx-repo/git_dbx_cicd --branch "main"
       
-      - name: Enable Jinja for workflow Deployment
-        run: |
-          dbx configure --enable-inplace-jinja-support
+      # - name: Enable Jinja for workflow Deployment
+      #   run: |
+      #     dbx configure --enable-inplace-jinja-support
 
       - name: Workflow deployment (assets only upload)
         run: |
