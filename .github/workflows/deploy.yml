@@ -60,6 +60,6 @@ jobs:
           databricks bundle deploy -t dev
       # dbx deploy --no-package
       
-      - name: Upgrade alembic
-        run: |
-          alembic --raiseerr upgrade heads
+      # - name: Upgrade alembic
+      #   run: |
+      #     alembic --raiseerr upgrade heads
