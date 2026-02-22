@@ -30,9 +30,6 @@ environments:
       - name: "git_dbx_cicd-sample-etl"
         environments:
           - environment_key: "serverless_env"
-            spec:
-              environment_type: "serverless"
-              version: "1"
         tasks:
           - task_key: "main"
             # <<: *basic-static-cluster
