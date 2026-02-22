@@ -42,8 +42,7 @@ jobs:
       
       - name: Install new databricks-cli
         run: |
-          brew tap databricks/tap
-          brew install databricks
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
       
       # - name: Install custom built databricks-sql dialect
       - name: Update dbx-repo in the Databricks environment
