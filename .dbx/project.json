@@ -5,7 +5,7 @@
             "storage_type": "mlflow",
             "properties": {
                 "workspace_directory": "/Shared/dbx/git_dbx_cicd",
-                "artifact_location": "dbfs:/Shared/dbx/projects/git_dbx_cicd"
+                "artifact_location": "dbfs:/Volumes/sid-prd/dbx-schema/artifacts-volume/dbx/projects/git_dbx_cicd"
             }
         }
     },
