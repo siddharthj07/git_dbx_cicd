@@ -28,9 +28,14 @@ environments:
       # this is an example job with single ETL task based on 2.1 API and wheel_task format #
       ######################################################################################
       - name: "git_dbx_cicd-sample-etl"
+        environments:
+          - environment_key: "serverless_env"
+            spec:
+              environment_type: "serverless"
         tasks:
           - task_key: "main"
             # <<: *basic-static-cluster
+            environment_key: "serverless_env"
             python_wheel_task:
               package_name: "git_dbx_cicd"
               entry_point: "etl" # take a look at the setup.py entry_points section for details on how to define an entrypoint
