@@ -1,0 +1,3 @@
+dbx==0.8.19
+databricks-cli==0.17.8
+databricks-sdk==0.29.0
