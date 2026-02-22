@@ -8,8 +8,8 @@ targets:
   dev:
     default: true
     workspace:
-      host: ${env.DATABRICKS_HOST}
+      host: ${{ secrets.DATABRICKS_HOST }}
 
   prod:
     workspace:
-      host: ${env.DATABRICKS_HOST}
+      host: ${{ secrets.DATABRICKS_HOST }}
