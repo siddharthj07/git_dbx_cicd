@@ -7,9 +7,5 @@ include:
 targets:
   dev:
     default: true
-    workspace:
-      host: ${{ secrets.DATABRICKS_HOST }}
 
-  prod:
-    workspace:
-      host: ${{ secrets.DATABRICKS_HOST }}
+  prod: {}
