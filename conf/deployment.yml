@@ -30,7 +30,7 @@ environments:
       - name: "git_dbx_cicd-sample-etl"
         tasks:
           - task_key: "main"
-            <<: *basic-static-cluster
+            # <<: *basic-static-cluster
             python_wheel_task:
               package_name: "git_dbx_cicd"
               entry_point: "etl" # take a look at the setup.py entry_points section for details on how to define an entrypoint
@@ -39,19 +39,19 @@ environments:
       # this is an example multitask job with notebook task       #
       #############################################################
       - name: "git_dbx_cicd-sample-multitask"
-        job_clusters:
-          - job_cluster_key: "default"
-            <<: *basic-static-cluster
+        # job_clusters:
+        #   - job_cluster_key: "default"
+        #     <<: *basic-static-cluster
         tasks:
           - task_key: "etl"
-            job_cluster_key: "default"
+            # job_cluster_key: "default"
             spark_python_task:
               python_file: "file://git_dbx_cicd/tasks/sample_etl_task.py"
               parameters: [ "--conf-file", "file:fuse://conf/tasks/sample_etl_config.yml" ]
           - task_key: "ml"
             depends_on:
               - task_key: "etl"
-            job_cluster_key: "default"
+            # job_cluster_key: "default"
             python_wheel_task:
               package_name: "git_dbx_cicd"
               entry_point: "ml"
@@ -65,7 +65,7 @@ environments:
               no_package: true # we omit using package since code will be shipped directly from the Repo
             depends_on:
               - task_key: "ml"
-            job_cluster_key: "default"
+            # job_cluster_key: "default"
             notebook_task:
               notebook_path: "/Repos/Staging/git_dbx_cicd/notebooks/sample_notebook"
 
