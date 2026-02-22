@@ -1,0 +1,58 @@
+name: Deploy
+
+on: 
+  workflow_call:
+    inputs:
+      environment:
+        description: The environment to deploy to (dev, staging, prod)
+        required: true
+        type: string
+
+jobs:
+  databricks:
+    name: Databricks
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+    
+    env:
+      DATABRICKS_ENVIRONMENT: ${{ inputs.environment }}
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN:  ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: checkout Repo
+        uses: actions/checkout@v1
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip' # caching pip dependencies
+          cache-dependency-path: setup.py
+
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      # - name: Install custom built databricks-sql dialect
+      - name: Update dbx-repo in the Databricks environment
+        run: |
+          databricks repos update --path /Repos/dbx-repo/git_dbx_cicd --branch "main"
+      
+      - name: Enable Jinja for workflow Deployment
+        run: |
+          dbx configure --enable-inplace-jinja-support
+
+      - name: Workflow deployment (assets only upload)
+        run: |
+          dbx deploy --no-package
+      
+      - name: Upgrade alembic
+        run: |
+          alembic --raiseerr upgrade heads
