@@ -1,0 +1,15 @@
+resources:
+  jobs:
+    gitz_dbx_cicd_sample_etl:
+      name: "gitz_dbx_cicd-sample-etl"
+      environments:
+        - environment_key: "serverless_env"
+          spec:
+            environment_version: "1"
+      tasks:
+        - task_key: "main"
+          environment_key: "serverless_env"
+          python_wheel_task:
+            package_name: "git_dbx_cicd"
+            entry_point: "etl" # take a look at the setup.py entry_points section for details on how to define an entrypoint
+            parameters: ["--conf-file", "file:fuse://conf/tasks/sample_etl_config.yml"]
