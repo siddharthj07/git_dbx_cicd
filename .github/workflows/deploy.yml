@@ -51,7 +51,9 @@ jobs:
 
       - name: Workflow deployment (assets only upload)
         run: |
-          dbx deploy --no-package
+          databricks bundle validate
+          databricks bundle deploy -t dev
+      # dbx deploy --no-package
       
       - name: Upgrade alembic
         run: |
