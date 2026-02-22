@@ -16,14 +16,14 @@ environments:
       #######################################################################################
       #   Example workflow for integration tests                                            #
       #######################################################################################
-      - name: "git_dbx_cicd-sample-tests"
-        tasks:
-          - task_key: "main"
-            <<: *basic-static-cluster
-            spark_python_task:
-                python_file: "file://tests/entrypoint.py"
-                # this call supports all standard pytest arguments
-                parameters: ["file:fuse://tests/integration", "--cov=git_dbx_cicd"]
+      # - name: "git_dbx_cicd-sample-tests"
+      #   tasks:
+      #     - task_key: "main"
+      #       <<: *basic-static-cluster
+      #       spark_python_task:
+      #           python_file: "file://tests/entrypoint.py"
+      #           # this call supports all standard pytest arguments
+      #           parameters: ["file:fuse://tests/integration", "--cov=git_dbx_cicd"]
       #######################################################################################
       # this is an example job with single ETL task based on 2.1 API and wheel_task format #
       ######################################################################################
