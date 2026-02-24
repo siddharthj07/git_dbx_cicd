@@ -2,6 +2,8 @@ resources:
   jobs:
     gitz_dbx_cicd_sample_etl:
       name: "gitz_dbx_cicd-sample-etl"
+      timeout_seconds: 0
+      max_retries: 2
       environments:
         - environment_key: "serverless_env"
           spec:
