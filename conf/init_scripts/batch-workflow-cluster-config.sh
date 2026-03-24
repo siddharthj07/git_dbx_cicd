@@ -1,0 +1,1 @@
+pip install beautifulsoup4==4.12.3 geopandas==1.0.1
