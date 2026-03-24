@@ -2,7 +2,9 @@ bundle:
   name: git_dbx_cicd
 
 include:
-  - conf/resources/**/*.yml
+  - conf/resources/clusters/*.yml
+  - conf/resources/jobs/*.yml
+  - conf/resources/*.yml
 
 targets:
   dev:

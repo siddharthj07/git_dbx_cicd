@@ -4,8 +4,8 @@ resources:
       name: testing_job
       description: Workflow for test
       job_clusters:
-        - new_cluster: ${resources.clusters.batch_workflow_cluster}
-          job_cluster_key: job_key_1
+        - job_cluster_key: job_key_1
+          new_cluster: ${resources.clusters.batch_workflow_cluster}
       tasks:
         - task_key: task_1
           notebook_task:
