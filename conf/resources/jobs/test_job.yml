@@ -1,0 +1,16 @@
+resources:
+  jobs:
+    test_job:
+      name: testing_job
+      description: Workflow for test
+    
+    job_clusters:
+    - new_cluster: ${resources.clusters.batch_workflow_cluster}
+      job_cluster_key: job_key_1
+    tasks:
+    - task_key: task_1
+      notebook_task:
+        notebook_path: /Workspace/Repos/dbx-repo/notebooks/sid_test
+      job_cluser_key: job_key_1
+    tags:
+      owner: Sid
