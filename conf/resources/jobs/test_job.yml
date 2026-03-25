@@ -9,7 +9,7 @@ resources:
       tasks:
         - task_key: task_1
           notebook_task:
-            notebook_path: /Workspace/Repos/dbx-repo/notebooks/sid_test
+            notebook_path: /Workspace/Repos/dbx-repo/git_dbx_cicd/git_dbx_cicd/notebooks/sid_test
           job_cluster_key: job_key_1
       tags:
         owner: Sid
