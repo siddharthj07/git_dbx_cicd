@@ -6,6 +6,16 @@ include:
   - conf/resources/jobs/*.yml
   - conf/resources/*.yml
 
+variables:
+  job_permissions:
+    description: Permissions for the job
+    type: complex
+    default:
+      - user_name: "francisdev007@gmail.com"
+        level: IS_OWNER
+      - user_name: "itishreebswl@gmail.com"
+        level: CAN_VIEW
+
 targets:
   dev:
     default: true
