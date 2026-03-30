@@ -5,11 +5,11 @@ resources:
       description: Workflow for test
       timeout_seconds: 0
       max_concurrent_runs: 1
-      access_control_list:
+      permissions:
         - user_name: "francisdev007@gmail.com"
-          permission_level: IS_OWNER
+          level: IS_OWNER
         - user_name: "itishreebswl@gmail.com"
-          permission_level: IS_OWNER
+          level: CAN_VIEW
       job_clusters:
         - job_cluster_key: job_key_1
           new_cluster: ${var.batch_workflow_cluster}
