@@ -13,6 +13,6 @@ variables:
         zone_id: auto
       init_scripts:
         - workspace:
-            destination: /workspace/Repos/dbx-repo/conf/init_scripts/batch-workflow-cluster-config.sh
+            destination: /workspace/Repos/dbx-repo/git_dbx_cicd/conf/init_scripts/batch-workflow-cluster-config.sh
       custom_tags:
         team: emob-datahub
