@@ -5,7 +5,7 @@ resources:
       description: Workflow for test
       timeout_seconds: 0
       max_concurrent_runs: 1
-      permissions: {$var.permissions}
+      permissions: {$var.job_permissions}
       job_clusters:
         - job_cluster_key: job_key_1
           new_cluster: ${var.batch_workflow_cluster}

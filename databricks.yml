@@ -7,7 +7,7 @@ include:
   - conf/resources/*.yml
 
 variables:
-  permissions:
+  job_permissions:
     description: Permissions for the job
     type: complex
     default:
