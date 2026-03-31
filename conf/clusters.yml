@@ -1,0 +1,19 @@
+variables:
+  custom_clusters:
+    description: Batch workflow job cluster
+    type: complex
+    batch-workflow-cluster-config: 
+      default:
+        autoscale:
+          min_workers: 1
+          max_workers: 2
+        spark_version: 15.4.x-scala2.12
+        node_type_id: r5d.large
+        aws_attributes:
+          availability: ON_DEMAND
+          zone_id: auto
+        init_scripts:
+          - workspace:
+              destination: /Workspace/Repos/dbx-repo/git_dbx_cicd/conf/init_scripts/batch-workflow-cluster-config.sh
+        custom_tags:
+          team: emob-datahub

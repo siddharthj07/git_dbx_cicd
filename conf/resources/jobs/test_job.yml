@@ -8,7 +8,7 @@ resources:
       permissions: ${var.job_permissions}
       job_clusters:
         - job_cluster_key: job_key_1
-          new_cluster: ${var.batch_workflow_cluster}
+          new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
       tasks:
         - task_key: task_1
           notebook_task:
