@@ -23,10 +23,13 @@ variables:
 
 targets:
   dev:
-    spark_version: "15.4.x-scala2.12"
+    variables:
+      spark_version: "15.4.x-scala2.12"
 
   pre:
-    spark_version: "16.4.x-scala2.12"
+    variables:
+      spark_version: "16.4.x-scala2.12"
 
   prod:
-    spark_version: "16.4.x-scala2.13"
+    variables:
+      spark_version: "16.4.x-scala2.13"
