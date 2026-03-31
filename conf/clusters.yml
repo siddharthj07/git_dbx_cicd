@@ -2,8 +2,8 @@ variables:
   custom_clusters:
     description: Batch workflow job cluster
     type: complex
-    batch-workflow-cluster-config: 
-      default:
+    default:
+      batch-workflow-cluster-config: 
         autoscale:
           min_workers: 1
           max_workers: 2
