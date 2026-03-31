@@ -14,8 +14,5 @@ variables:
       init_scripts:
         - workspace:
             destination: /Workspace/Repos/dbx-repo/git_dbx_cicd/conf/init_scripts/batch-workflow-cluster-config.sh
-      libraries:
-        - maven:
-            coordinates: com.crealytics:spark-excel_2.12:0.14.0
       custom_tags:
         team: emob-datahub
