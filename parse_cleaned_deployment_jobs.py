@@ -23,9 +23,7 @@ def load_source() -> Path:
     for path in SOURCE_CANDIDATES:
         if path.exists():
             return path
-    raise FileNotFoundError(
-        "Could not find cleaned_deployment.yml in conf/ or repository root."
-    )
+    raise FileNotFoundError("Could not find cleaned_deployment.yml in conf/ or repository root.")
 
 
 def split_job_blocks(text: str) -> List[str]:
@@ -95,6 +93,17 @@ def extract_section(block_lines: List[str], key: str, child_indent: int) -> str 
     return "\n".join(block_lines[start_idx:end_idx]).rstrip()
 
 
+def extract_name_level_merges(block_lines: List[str], child_indent: int) -> str | None:
+    merge_lines: List[str] = []
+    for line in block_lines[1:]:
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        if indent == child_indent and re.match(r"^\s*<<:\s*\*[A-Za-z0-9_-]+\s*$", line):
+            merge_lines.append(line)
+    return "\n".join(merge_lines) if merge_lines else None
+
+
 def replace_anchor_merges(section: str) -> str:
     return re.sub(
         r"^(\s*)<<:\s*\*([A-Za-z0-9_-]+)\s*$",
@@ -102,6 +111,34 @@ def replace_anchor_merges(section: str) -> str:
         section,
         flags=re.MULTILINE,
     )
+
+
+def transform_schedule(schedule: str) -> str:
+    transformed = schedule
+
+    # quartz_cron_expression: {{ custom.cron_schedule("...", ...) }} -> quartz_cron_expression: "..."
+    transformed = re.sub(
+        r'^(\s*quartz_cron_expression:\s*)\{\{\s*custom\.cron_schedule\(\s*(["\'])(.*?)\2\s*,.*\)\s*\}\}\s*$',
+        lambda m: f'{m.group(1)}"{m.group(3)}"',
+        transformed,
+        flags=re.MULTILINE,
+    )
+
+    transformed = re.sub(
+        r"^(\s*pause_status:\s*)\{\{\s*custom\.conditionally_pause_non_prod_job\(.*\)\s*\}\}\s*$",
+        r"\1${var.conditionally_pause_non_prod_job}",
+        transformed,
+        flags=re.MULTILINE,
+    )
+
+    transformed = re.sub(
+        r"^(\s*pause_status:\s*)\{\{\s*custom\.conditionally_pause_dev_job\(.*\)\s*\}\}\s*$",
+        r"\1${var.conditionally_pause_dev_job}",
+        transformed,
+        flags=re.MULTILINE,
+    )
+
+    return transformed
 
 
 def reindent_section(section: str, old_indent: int, new_indent: int) -> str:
@@ -120,7 +157,11 @@ def extract_product_from_tags(tags_section: str | None) -> str:
     if not tags_section:
         return "OTHER"
 
-    match = re.search(r'^\s*product:\s*["\']?([A-Za-z0-9_-]+)["\']?\s*$', tags_section, re.MULTILINE)
+    match = re.search(
+        r'^\s*product:\s*["\']?([A-Za-z0-9_-]+)["\']?\s*$',
+        tags_section,
+        re.MULTILINE,
+    )
     if not match:
         return "OTHER"
 
@@ -130,6 +171,7 @@ def extract_product_from_tags(tags_section: str | None) -> str:
 
 def build_job_yaml(
     job_name: str,
+    name_level_merges: str | None,
     schedule: str | None,
     job_clusters: str | None,
     tasks: str | None,
@@ -142,6 +184,9 @@ def build_job_yaml(
         f"    {job_name}:",
         f"      name: {job_name}",
     ]
+
+    if name_level_merges:
+        lines.append(reindent_section(name_level_merges, old_indent, 6))
 
     for section in (schedule, job_clusters, tasks, tags):
         if not section:
@@ -166,17 +211,28 @@ def parse_jobs(source_text: str) -> Tuple[Dict[str, Dict[str, str]], Dict[str, s
         child_indent = detect_child_indent(lines)
         job_name = extract_name(block)
 
+        name_level_merges = extract_name_level_merges(lines, child_indent)
         schedule = extract_section(lines, "schedule", child_indent)
         job_clusters = extract_section(lines, "job_clusters", child_indent)
         tasks = extract_section(lines, "tasks", child_indent)
         tags = extract_section(lines, "tags", child_indent)
 
+        if schedule:
+            schedule = transform_schedule(schedule)
         if job_clusters:
             job_clusters = replace_anchor_merges(job_clusters)
         if tasks:
             tasks = replace_anchor_merges(tasks)
 
-        job_yaml = build_job_yaml(job_name, schedule, job_clusters, tasks, tags, child_indent)
+        job_yaml = build_job_yaml(
+            job_name,
+            name_level_merges,
+            schedule,
+            job_clusters,
+            tasks,
+            tags,
+            child_indent,
+        )
         all_jobs[job_name] = job_yaml
 
         product_bucket = extract_product_from_tags(tags)
@@ -195,17 +251,13 @@ def write_output(product_dicts: Dict[str, Dict[str, str]], all_jobs: Dict[str, s
     lines.append("")
 
     for bucket in ordered_buckets:
-        bucket_lines = []
-        bucket_lines.append(f"## {bucket}")        
-        bucket_lines.append("")
-        for job_name, yaml_content in product_dicts[bucket].items():
-            bucket_lines.append(f"### {job_name}")
-            bucket_lines.append(yaml_content.rstrip())
-            bucket_lines.append("")
-        lines.extend(bucket_lines)
+        lines.append(f"## {bucket}")
+        lines.append("")
+        for job_name in sorted(product_dicts[bucket]):
+            lines.append(f"### {job_name}")
+            lines.append(product_dicts[bucket][job_name].rstrip())
+            lines.append("")
 
-        BUCKET_OUTPUT_FILE = Path(f"{bucket}.yml")
-        BUCKET_OUTPUT_FILE.write_text("\n".join(bucket_lines).rstrip() + "\n", encoding="utf-8")
     OUTPUT_FILE.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
