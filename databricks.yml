@@ -17,6 +17,10 @@ variables:
       - user_name: "itishreebswl@gmail.com"
         level: CAN_VIEW
 
+  email_notifications: {}
+  webhook_notifications: {}
+  notification_settings: {}
+
 targets:
   dev:
     default: true

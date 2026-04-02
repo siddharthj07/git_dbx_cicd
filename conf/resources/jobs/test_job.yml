@@ -6,6 +6,10 @@ resources:
       timeout_seconds: 0
       max_concurrent_runs: 1
       permissions: ${var.job_permissions}
+      email_notifications: ${var.email_notifications}
+      webhook_notifications: ${var.webhook_notifications}
+      notification_settings: ${var.notification_settings}
+      
       job_clusters:
         - job_cluster_key: job_key_1
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -19,3 +23,13 @@ resources:
           job_cluster_key: job_key_1
       tags:
         owner: Sid
+
+#
+# webhook_notifications
+# notification_settings
+# parameters
+# performance_target
+# queue (enabled or not)
+# schedule
+# tags
+# tasks
