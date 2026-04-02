@@ -195,13 +195,17 @@ def write_output(product_dicts: Dict[str, Dict[str, str]], all_jobs: Dict[str, s
     lines.append("")
 
     for bucket in ordered_buckets:
-        lines.append(f"## {bucket}")
-        lines.append("")
+        bucket_lines = []
+        bucket_lines.append(f"## {bucket}")        
+        bucket_lines.append("")
         for job_name, yaml_content in product_dicts[bucket].items():
-            lines.append(f"### {job_name}")
-            lines.append(yaml_content.rstrip())
-            lines.append("")
+            bucket_lines.append(f"### {job_name}")
+            bucket_lines.append(yaml_content.rstrip())
+            bucket_lines.append("")
+        lines.extend(bucket_lines)
 
+        BUCKET_OUTPUT_FILE = Path(f"{bucket}.yml")
+        BUCKET_OUTPUT_FILE.write_text("\n".join(bucket_lines).rstrip() + "\n", encoding="utf-8")
     OUTPUT_FILE.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
