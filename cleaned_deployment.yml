@@ -9155,3 +9155,3771 @@
           owner: "Soumya"
           keywords: "consumptions"
         format: MULTI_TASK
+
+      ##############################################################################                                                         #
+      # This is a workflow that is used to charger alert rules from s3 into table  #                                       #
+      ###############################################################################
+      - name: euh_charger_alert_allocation_rule
+        <<: *default-workflow-config  
+        tasks:
+        - task_key: charger_alert_allocation_rule
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/alerts/euh_charger_alert_allocation_rule
+            base_parameters:
+              schema_name: ""
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+          tags:
+            pipeline type: "ocpp"
+            data source type: "batch"
+            data source: "s3"
+            owner: "Ashwary"
+            product: "EVEC"
+            refresh type: "manual"
+            target table: "charger alert allocation rule"
+          format: MULTI_TASK
+      ##############################################################################
+      # euh_emai_daily                               #
+      ##############################################################################
+      - name: euh_emai_daily
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 0 ? * *"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}    
+        tasks:
+        - task_key: charger_meter_value_generic_model_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: charger_meter_value_generic_model
+              load_type: standard
+            source: WORKSPACE
+          <<: *mvt-cluster-config
+          max_retries: 2
+
+      ##############################################################################
+      # euh_emai_weekly                               #
+      ##############################################################################
+      - name: euh_emai_weekly
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 12 ? * SUN *"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}    
+        tasks:
+        - task_key: charger_meter_value_generic_model_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: charger_meter_value_generic_model
+              load_type: full
+            source: WORKSPACE
+          <<: *mvt-cluster-config
+          max_retries: 2
+
+      ##############################################################################
+      # euh_kpi_emio_daily                                #
+      ##############################################################################
+      - name: euh_kpi_emio_daily
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 15 0 ? * *"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: charger_ocpp_mvt_cluster
+            <<: *mvt-cluster-config
+          - job_cluster_key: charger_event_start_stop_mvt_cluster
+            <<: *mvt-cluster-config
+          - job_cluster_key: kpi_csr_mvt_cluster
+            <<: *mvt-cluster-config
+          - job_cluster_key: kpi_uptime_mvt_cluster
+            <<: *mvt-cluster-config
+        tasks:
+          # Master Data Update
+        - task_key: charger_information_ocpp_mapping_mvt
+          job_cluster_key: charger_ocpp_mvt_cluster
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_information_ocpp_mapping_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: charger_information_mvt  # Serverless
+          depends_on:
+            - task_key: charger_information_ocpp_mapping_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_information_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: charger_connectivity_sim_assignment_mvt  # Serverless
+          depends_on:
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_connectivity_sim_assignment_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: charger_payment_terminal_assignment_enriched_mvt
+          <<: *mvt-cluster-config
+          depends_on:
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+            - task_key: charger_information_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_payment_terminal_assignment_enriched_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # Enriched OCPP
+        - task_key: charger_ocpp_generic_model_enriched_mvt
+          job_cluster_key: charger_ocpp_mvt_cluster
+          depends_on:
+            - task_key: charger_information_ocpp_mapping_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: charger_ocpp_generic_model_enriched
+              load_type: standard
+            source: WORKSPACE
+          max_retries: 2
+        # Authorisation
+        - task_key: charger_event_authorisation_mvt  # Serverless
+          depends_on:
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_event_authorisation_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # Config Update
+        - task_key: charger_ocpp_config_key_model_mvt
+          job_cluster_key: charger_ocpp_mvt_cluster
+          depends_on:
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_ocpp_config_key_model_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # Start and Stop Session
+        - task_key: charger_event_start_session_mvt
+          job_cluster_key: charger_event_start_stop_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_event_start_session_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: charger_event_stop_session_mvt
+          job_cluster_key: charger_event_start_stop_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_event_stop_session_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # CSR Update
+        - task_key: kpi_csr_detail_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_detail
+              load_type: standard
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_csr_unified_attempt_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_csr_detail_mvt
+            - task_key: charger_event_start_session_mvt
+            - task_key: charger_event_stop_session_mvt
+            - task_key: charger_event_authorisation_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_unified_attempt
+              load_type: standard
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_csr_unified_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_csr_unified_attempt_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_unified
+              load_type: standard
+            source: WORKSPACE
+          max_retries: 2
+        # CVSR
+        - task_key: kpi_cvsr_site_timestamp_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: kpi_csr_unified_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_cvsr_site_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # Uptime Update
+        - task_key: kpi_uptime_ocpp_backend_connectivity_timestamp_mvt
+          job_cluster_key: kpi_uptime_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_uptime_ocpp_backend_connectivity_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_uptime_combined_connector_timestamp_mvt
+          job_cluster_key: kpi_uptime_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: kpi_uptime_ocpp_backend_connectivity_timestamp_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_uptime_combined_connector_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_websocket_connectivity_timestamp_mvt
+          <<: *mvt-cluster-config
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_websocket_connectivity_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_websocket_session_detail_timestamp_mvt  # Serverless
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_websocket_session_detail_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # Charger Detail Timestamp
+        - task_key: kpi_charger_detail_timestamp_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_uptime_ocpp_backend_connectivity_timestamp_mvt
+            - task_key: kpi_uptime_combined_connector_timestamp_mvt
+            - task_key: kpi_cvsr_site_timestamp_mvt
+            - task_key: kpi_csr_unified_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_charger_detail_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # CSR Enriched
+        - task_key: kpi_csr_unified_enriched_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_csr_unified_mvt
+            - task_key: kpi_cvsr_site_timestamp_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_unified_enriched
+              load_type: standard
+            source: WORKSPACE
+          max_retries: 2
+        # Charger Detail Daily
+        - task_key: kpi_charger_detail_daily_mvt
+          <<: *mvt-cluster-config
+          depends_on:
+            - task_key: kpi_uptime_combined_connector_timestamp_mvt
+            - task_key: kpi_websocket_connectivity_timestamp_mvt
+            - task_key: kpi_websocket_session_detail_timestamp_mvt
+            - task_key: kpi_cvsr_site_timestamp_mvt
+            - task_key: charger_event_authorisation_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_charger_detail_daily_mvt
+            source: WORKSPACE
+          max_retries: 2
+        #########################################################
+        # Trigger a Power BI refresh at the end of the workflow #
+        #########################################################
+        - task_key: refresh_powerbi_master_dataset
+          <<: *pipeline-cluster-config
+          max_retries: 2
+          depends_on:
+            - task_key: kpi_charger_detail_daily_mvt
+            - task_key: kpi_charger_detail_timestamp_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/powerbi_generic_refresh_service
+            base_parameters:
+              dataset_name: "powerbi-emio-master-dataset"
+              refresh_type: "full"
+              refresh_target: "all"
+              refresh_table_name: ""
+              partition_id: ""
+              powerbi_refresh_active_pre: "false"
+              powerbi_refresh_active_prod: "true"
+            source: WORKSPACE
+        tags:
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "materialise"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+        performance_target: STANDARD  # Optimise for cost
+
+      ##############################################################################
+      # euh_kpi_emio_regular                                   #
+      ##############################################################################
+      - name: euh_kpi_emio_regular
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 0/4 * * ?"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: euh_kpi_emio_regular_job_cluster
+            <<: *mvt-cluster-config
+        tasks:
+        - task_key: charger_payment_terminal_event_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_payment_terminal_event_enriched_mvt
+            source: WORKSPACE
+          job_cluster_key: euh_kpi_emio_regular_job_cluster
+          max_retries: 2
+        # - task_key: charger_event_authorisation_mvt
+        #   depends_on:
+        #     - task_key: charger_payment_terminal_event_enriched_mvt
+        #   notebook_task:
+        #     notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+        #     base_parameters:
+        #       mvt_name: charger_event_authorisation_mvt
+        #     source: WORKSPACE
+        #   <<: *mvt-cluster-config
+        #   max_retries: 2
+        # - task_key: kpi_charger_detail_timestamp_mvt
+        #   notebook_task:
+        #     notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+        #     base_parameters:
+        #       mvt_name: kpi_charger_detail_timestamp_mvt
+        #     source: WORKSPACE
+        #   <<: *mvt-cluster-config
+        #   max_retries: 2
+        - task_key: charger_event_unified_mvt
+          depends_on:
+            - task_key: charger_payment_terminal_event_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_event_unified_mvt
+            source: WORKSPACE
+          job_cluster_key: euh_kpi_emio_regular_job_cluster
+          max_retries: 2
+        - task_key: kpi_charger_alert_evec_mvt
+          depends_on:
+            - task_key: charger_payment_terminal_event_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_charger_alert_evec_mvt
+            source: WORKSPACE
+          job_cluster_key: euh_kpi_emio_regular_job_cluster
+          max_retries: 2
+        ###########################################################
+        # Refresh Views & Permissions at the end of the workflow #
+        ##########################################################
+        - task_key: refresh_views
+          <<: *pipeline-cluster-config
+          max_retries: 2
+          depends_on:
+            - task_key: charger_payment_terminal_event_enriched_mvt
+            - task_key: charger_event_unified_mvt
+            - task_key: kpi_charger_alert_evec_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_views
+            source: WORKSPACE
+        - task_key: refresh_permissions
+          <<: *pipeline-cluster-config
+          max_retries: 2
+          depends_on:
+            - task_key: refresh_views
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_permissions
+            base_parameters:
+              permission_refresh_type: standard
+            source: WORKSPACE
+        tags:
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "materialise"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+
+      ##############################################################################
+      # euh_kpi_emio_weekly                                #
+      ##############################################################################
+      - name: euh_kpi_emio_weekly
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 12 ? * SUN *"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: charger_ocpp_mvt_cluster
+            <<: *mvt-cluster-config
+          - job_cluster_key: kpi_csr_mvt_cluster
+            <<: *mvt-cluster-config
+          - job_cluster_key: kpi_uptime_mvt_cluster
+            <<: *mvt-cluster-config
+        tasks:
+        # Master Data Update
+        - task_key: charger_information_mvt  # Serverless
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_information_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: charger_payment_terminal_assignment_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_payment_terminal_assignment_enriched_mvt
+            source: WORKSPACE
+          <<: *mvt-cluster-config
+          max_retries: 2
+        # Enriched OCPP
+        - task_key: charger_ocpp_generic_model_enriched_mvt
+          job_cluster_key: charger_ocpp_mvt_cluster
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: charger_ocpp_generic_model_enriched
+              load_type: full
+            source: WORKSPACE
+          max_retries: 2
+          # Config Update
+        - task_key: charger_ocpp_config_key_model_mvt
+          job_cluster_key: charger_ocpp_mvt_cluster
+          depends_on:
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: charger_ocpp_config_key_model_mvt
+            source: WORKSPACE
+          max_retries: 2
+        # CSR Update
+        - task_key: kpi_csr_detail_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+            - task_key: charger_ocpp_generic_model_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_detail
+              load_type: full
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_csr_unified_attempt_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_csr_detail_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_unified_attempt
+              load_type: full
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_csr_unified_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_csr_unified_attempt_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_unified
+              load_type: full
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_csr_unified_enriched_mvt
+          job_cluster_key: kpi_csr_mvt_cluster
+          depends_on:
+            - task_key: kpi_csr_unified_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+            base_parameters:
+              table_name: kpi_csr_unified_enriched
+              load_type: full
+            source: WORKSPACE
+          max_retries: 2
+        # Uptime Update
+        - task_key: kpi_uptime_combined_connector_timestamp_mvt
+          job_cluster_key: kpi_uptime_mvt_cluster
+          depends_on:
+            - task_key: charger_information_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_uptime_combined_connector_timestamp_mvt
+            source: WORKSPACE
+          max_retries: 2
+        - task_key: kpi_websocket_connectivity_timestamp_mvt
+          depends_on:
+            - task_key: charger_information_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_websocket_connectivity_timestamp_mvt
+            source: WORKSPACE
+          <<: *mvt-cluster-config
+          max_retries: 2
+        # Charger Detail Daily
+        - task_key: kpi_charger_detail_daily_mvt
+          depends_on:
+            - task_key: kpi_csr_unified_mvt
+            - task_key: kpi_uptime_combined_connector_timestamp_mvt
+            - task_key: kpi_websocket_connectivity_timestamp_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_emio
+            base_parameters:
+              mvt_name: kpi_charger_detail_daily_mvt
+            source: WORKSPACE
+          <<: *mvt-cluster-config
+          max_retries: 2
+        ###########################################################
+        # Refresh Views & Permissions at the end of the workflow #
+        ##########################################################
+        - task_key: refresh_views
+          <<: *pipeline-cluster-config
+          max_retries: 2
+          depends_on:
+            - task_key: kpi_charger_detail_daily_mvt
+            - task_key: kpi_csr_unified_enriched_mvt
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_views
+            source: WORKSPACE
+        - task_key: refresh_permissions
+          <<: *pipeline-cluster-config
+          max_retries: 2
+          depends_on:
+            - task_key: refresh_views
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_permissions
+            base_parameters:
+              permission_refresh_type: standard
+            source: WORKSPACE
+        tags:
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "materialise"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+        
+      ######################################################################################
+      # Generic PowerBI Refresh Service - Trigger Regular and Enhanced Refreshes on Demand #
+      #####################################################################################
+      - name: powerbi_refresh_service
+        <<: *default-workflow-config
+        description: "BEFORE RUNNING: Select 'Run now with different settings' and specify a dataset name in the parameters!"
+        tags:
+          owner: "Marta"
+          product: "EMIO"
+          task type: "utility"
+          refresh type: "manual"
+        tasks:
+        - task_key: refresh_dataset
+          <<: *pipeline-cluster-config
+          max_retries: 2
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/powerbi_generic_refresh_service
+            base_parameters:
+              dataset_name: ""
+              refresh_type: "full"
+              refresh_target: "all"
+              refresh_table_name: ""
+              partition_id: ""
+              powerbi_refresh_active_pre: "true"
+              powerbi_refresh_active_prod: "true"
+            source: WORKSPACE
+
+      ##############################################################################
+      # Refresh Permissions                                                         #
+      # This is a workflow that can be used to refresh all connections in the       #
+      # unity catalog - based on a notebook                                         #
+      ###############################################################################
+      - name: "alembic_refresh_connections"
+        <<: *alembic-workflow-config
+        tags:
+          workflow-status: "Usable"
+          schemas: "all-schemas"
+          views: "all-connections"
+          refresh type: "manual"
+          owner: "Maurits"
+          product: "EMIO"
+
+        tasks:
+          - task_key: "refresh_connections"
+            <<: *pipeline-cluster-config
+            deployment_config:
+              no_package: true
+            notebook_task:
+                notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_connections"
+                source: WORKSPACE
+          - task_key: "refresh_udfs"
+            <<: *pipeline-cluster-config
+            depends_on:
+              - task_key: refresh_connections
+            deployment_config:
+              no_package: true
+            notebook_task:
+                notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_udfs"
+                source: WORKSPACE
+          - task_key: refresh_permissions
+            max_retries: 2
+            <<: *pipeline-cluster-config
+            depends_on:
+              - task_key: refresh_udfs
+            deployment_config:
+              no_package: true
+            notebook_task:
+              notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/alembic_refresh_permissions"
+              base_parameters:
+                permission_refresh_type: "standard"
+              source: WORKSPACE
+      ##############################################################################                                                         #
+      # This is a workflow that is used for housekeeping of sandbox schema cleanup  #                                       #
+      ###############################################################################
+      - name: Sandbox_Table_Cleanup_Alert
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 8 ? * 7#1"
+          timezone_id: "UTC"   
+        tasks:
+        - task_key: sandbox_table_clenup
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/sandbox_table_cleanup_alert
+            base_parameters:
+              schema_name: ""
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+          
+      ##################################################################################
+      #    Consolidated Email ETL Pipeline - Microsoft Graph                          #
+      #    - This workflow processes emails through Landing → Raw → Silver layers     #
+      #    - Includes AI-powered email categorisation using Shell-e LLM               #
+      #    - Replaces time-based scheduling with dependency-based execution           #
+      ##################################################################################
+
+      - name: email_etl_pipeline_msgraph
+        <<: *default-workflow-config
+
+        schedule:
+          quartz_cron_expression: "0 0 0,10 ? * MON-FRI"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: batch_workflow_cluster
+            <<: *batch-workflow-cluster-config
+
+        tasks:
+        ################################################################################
+        # LANDING LAYER - Email Ingestion                                             #
+        ################################################################################
+        - task_key: landing_email_ingestion
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_email_batch_msgraph"
+            base_parameters:
+              load_from: "latest"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+          
+
+        ################################################################################
+        # RAW LAYER - Email Messages Processing                                       #
+        ################################################################################
+        - task_key: raw_email_messages
+          depends_on:
+            - task_key: landing_email_ingestion
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_email_batch_msgraph"
+            base_parameters:
+              file_type: "message"
+              load_type: "incremental"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        ################################################################################
+        # RAW LAYER - Email Attachments Processing                                    #
+        ################################################################################
+        - task_key: raw_email_attachments
+          depends_on:
+            - task_key: landing_email_ingestion
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_email_batch_msgraph"
+            base_parameters:
+              file_type: "attachment"
+              load_type: "incremental"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        ################################################################################
+        # SILVER LAYER (EUH) - Email Messages Transformation                          #
+        ################################################################################
+        - task_key: euh_email_messages
+          depends_on:
+            - task_key: raw_email_messages
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_email_message"
+            base_parameters:
+              load_type: "incremental"
+              country: "global"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        ################################################################################
+        # SILVER LAYER (EUH) - Email Attachments Transformation                       #
+        ################################################################################
+        - task_key: euh_email_attachments
+          depends_on:
+            - task_key: raw_email_attachments
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_email_attachment"
+            base_parameters:
+              load_type: "incremental"
+              country: "global"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        ################################################################################
+        # AI CATEGORISATION - Email Message Categorisation                            #
+        ################################################################################
+        - task_key: euh_email_ai_categorisation
+          depends_on:
+            - task_key: euh_email_messages
+            - task_key: euh_email_attachments
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_email_ai_categorisation"
+            base_parameters:
+              categorisation_mode: "uncategorised_only"
+              load_type: "days_back"
+              days_back: "30"
+              batch_limit: "0"
+            source: WORKSPACE
+          <<: *shelle-cluster-config
+
+        ################################################################################
+        # WORK ORDER NORMALISATION - Attachment processing                      #
+        ################################################################################
+        - task_key: euh_work_order_normalisation
+          depends_on:
+            - task_key: euh_email_ai_categorisation
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_work_order_normalisation"
+            base_parameters:
+              load_type: "incremental"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        ################################################################################
+        # WORK ORDER MATCHING - Map work orders to charger metadata                    #
+        ################################################################################
+        - task_key: euh_work_order_charger_matching
+          depends_on:
+            - task_key: euh_work_order_normalisation
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_work_order_charger_matching"
+            base_parameters:
+              load_type: "incremental_auto"
+            source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        ################################################################################
+        # AI CATEGORISATION - Work order root cause                                    #
+        ################################################################################
+        - task_key: euh_work_order_ai_root_cause_categorisation
+          depends_on:
+            - task_key: euh_work_order_charger_matching
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_work_order_ai_root_cause_categorisation"
+            base_parameters:
+              categorisation_mode: "uncategorised_only"
+              load_type: "days_back"
+              days_back: "30"
+              batch_limit: "0"
+            source: WORKSPACE
+          <<: *shelle-cluster-config
+
+        - task_key: euh_work_order_send_completion_teams
+          depends_on:
+            - task_key: euh_work_order_ai_root_cause_categorisation
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_work_order_send_completion_teams"
+          source: WORKSPACE
+          job_cluster_key: batch_workflow_cluster
+
+        
+        email_notifications:
+          on_failure:
+            - "maurits.m.merks@shell.com"
+
+        tags:
+          pipeline type: "work order"
+          data source type: "batch"
+          data source: "microsoft graph email"
+          owner: "Maurits Merks"
+          product: "EMAI"
+          task type: "etl"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+
+      ##################################################################################
+      #    ETL Workflow Processing Pre-authorisation & Payment Data from DSP           #
+      ##################################################################################
+      - name: etl_charger_session_authorisation_cxm_dsp
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0 * * * ?", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: cxm_dsp_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: landing_etl_charger_session_authorisation_cxm_dsp
+          notebook_task:
+              notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_session_authorisation_cxm_dsp
+              base_parameters:
+                load_type: "standard"
+                region: "eu"
+                start_date: ""
+                end_date: ""
+              source: WORKSPACE
+          job_cluster_key: cxm_dsp_job_cluster
+        - task_key: raw_etl_charger_session_authorisation_cxm_dsp
+          depends_on:
+            - task_key: landing_etl_charger_session_authorisation_cxm_dsp
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_session_authorisation_cxm_dsp
+            base_parameters:
+              load_type: "standard"
+              region: "eu"
+            source: WORKSPACE
+          job_cluster_key: cxm_dsp_job_cluster
+        - task_key: euh_etl_charger_session_authorisation_generic_model_unified_cxm_dsp
+          depends_on:
+            - task_key: raw_etl_charger_session_authorisation_cxm_dsp
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_cxm_dsp
+            base_parameters:
+              load_type: "standard"
+              region: "eu"
+            source: WORKSPACE
+          job_cluster_key: cxm_dsp_job_cluster
+        tags:
+          pipeline type: "msp"
+          data source type: "batch"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+          country code: "eu"
+        format: MULTI_TASK
+
+      ##################################################################################
+      #    ETL Workflow Processing Authorisation Data from CXM EU Databases            #
+      ##################################################################################
+      - name: etl_charger_session_authorisation_cxm_eu_postgres
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0 6,12,18 * * ?", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: landing_etl_charger_session_authorisation_cxm_eu_postgres
+          notebook_task:
+              notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_session_authorisation_cxm_eu_postgres
+              base_parameters:
+                load_type: "standard"
+                start_date: ""
+                end_date: ""
+              source: WORKSPACE
+          <<: *pipeline-cluster-config  # This task *must* run on the pipeline cluster to allow connectivity to CXM EU Postgres DB
+        - task_key: raw_etl_charger_session_authorisation_cxm_eu_postgres
+          depends_on:
+            - task_key: landing_etl_charger_session_authorisation_cxm_eu_postgres
+          notebook_task:
+              notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_session_authorisation_cxm_eu_postgres
+              base_parameters:
+                load_type: "standard"
+              source: WORKSPACE
+          <<: *pipeline-cluster-config
+        - task_key: euh_etl_charger_session_authorisation_generic_model_unified_cxm_eu_postgres
+          depends_on:
+            - task_key: raw_etl_charger_session_authorisation_cxm_eu_postgres
+          notebook_task:
+              notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_cxm_eu_postgres
+              base_parameters:
+                load_type: "standard"
+              source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "batch"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+          country code: "eu"
+        format: MULTI_TASK
+
+      #################################################################################
+      #   euh_charger_alert_150100100_charger_low_csr                                 #
+      #################################################################################
+      - name: "euh_charger_alert_150100100_charger_low_csr"
+        <<: *default-alerts-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 30 2 * * ?", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_charger_alert_150100100_charger_low_csr"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/alerts/euh_charger_alert_150100100_charger_low_csr"
+            base_parameters:
+              country_codes: "DE,NL,SG,GB"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        - task_key: Alert_Action_Send_Notification
+          depends_on:
+            - task_key: euh_charger_alert_150100100_charger_low_csr
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/alerts/euh_charger_alert_notification_service"
+            base_parameters:
+              alert_notification_group: "KPI-CSR"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "ocpp"
+          owner: "Anukansha"
+          product: "EVEC"
+          refresh type: "scheduled"
+          target table: "charger alert"
+        format: MULTI_TASK
+      #################################################################################
+      #   euh_charger_alert_200100100_charger_snooze_batch_close                       #
+      #################################################################################
+      - name: "euh_charger_alert_200100100_charger_snooze_batch_close"
+        <<: *default-alerts-workflow-config
+
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 */10 * * * ?", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_charger_alert_200100100_charger_snooze_batch_close"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/alerts/euh_charger_alert_200100100_charger_snooze_batch_close"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "ocpp"
+          owner: "Sakthi Balan Karmegam"
+          product: "EVEC"
+          refresh type: "scheduled"
+          target table: "charger alert"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_ocpp_generic_model_unified_batch_driivz_shell_eu        #
+      #############################################################################
+      - name: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_shell_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}    
+        tasks:
+        - task_key: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_shell_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_ocpp_generic_model_unified_driivz_batch"
+            base_parameters:
+              country: "eu"
+              data type: "batch"
+              load type: "standard"
+              source: "shell-eu"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz"
+          owner: "Prakash"
+          product: "EMIO"
+          refresh type: "continuous"
+          country code: "eu"
+          target table: "charger ocpp generic model unified"
+        format: MULTI_TASK
+      #################################################################################
+      #   euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_apex_eu  #
+      #################################################################################
+      - name: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_apex_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}    
+        tasks:
+        - task_key: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_apex_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_ocpp_generic_model_unified_driivz_batch"
+            base_parameters:
+              country: "eu"
+              data type: "batch"
+              load type: "standard"
+              source: "ubitricity-apex"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity apex"
+          owner: "Prakash"
+          product: "EMIO"
+          refresh type: "continuous"
+          country code: "eu"
+          target table: "charger ocpp generic model unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_eu   #
+      #############################################################################
+      - name: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}    
+        tasks:
+        - task_key: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_ocpp_generic_model_unified_driivz_batch"
+            base_parameters:
+              country: "eu"
+              data type: "batch"
+              load type: "standard"
+              source: "ubitricity"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity"
+          owner: "Prakash"
+          product: "EMIO"
+          refresh type: "continuous"
+          country code: "eu"
+          target table: "charger ocpp generic model unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_payment_terminal_event_card_read_core   #
+      #############################################################################
+      - name: "euh_etl_charger_payment_terminal_event_card_read_core"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_payment_terminal_event_card_read_core"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_payment_terminal_event_card_read_core"
+            base_parameters:
+              load_type: "incremental"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "psp"
+          data source type: "streaming"
+          data source: "psp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger payment terminal event card read core"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_payment_terminal_event_card_read_unified                #
+      #############################################################################
+      - name: "euh_etl_charger_payment_terminal_event_card_read_unified"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_payment_terminal_event_card_read_unified"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_payment_terminal_event_card_read_unified"
+            base_parameters:
+              load_type: "incremental"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "psp"
+          data source type: "streaming"
+          data source: "psp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger payment terminal event card read unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_payment_terminal_incomplete_transaction_unified   #
+      #############################################################################
+      - name: "euh_etl_charger_payment_terminal_incomplete_transaction_unified"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_payment_terminal_incomplete_transaction_unified"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_payment_terminal_incomplete_transaction_unified"
+            base_parameters:
+              load_type: "incremental"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "psp"
+          data source type: "streaming"
+          data source: "psp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger payment terminal event unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_core   #
+      #############################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_core"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_core"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_core"
+            base_parameters:
+              load_type: "standard"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Ben"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model core"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srsna_cxm   #
+      #############################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_cxm"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_cxm"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_cxm"
+            base_parameters:
+              load_type: "standard"
+              region: "na"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Ben"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_apac   #
+      #############################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_apac"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_apac"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_nni"
+            base_parameters:
+              load_type: "standard"
+              region: "apac"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_eur   #
+      #############################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_eur"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_eur"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_nni"
+            base_parameters:
+              load_type: "standard"
+              region: "eur"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          data source: "msp"
+          data type: "streaming"
+          refresh type: "continuous"
+          target table: "charger_session_authorisation_generic_model_unified"
+          owner: "Sharad"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_na   #
+      #############################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_na"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_na"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_nni"
+            base_parameters:
+              load_type: "standard"
+              region: "na"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model unified"
+        format: MULTI_TASK
+      #############################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srsna_sky_core   #
+      #############################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_sky_core"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_sky_core"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_sky_core"
+            base_parameters:
+              load_type: "standard"
+              region: "na"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Ben"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model unified"
+        format: MULTI_TASK
+      ###################################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_apac   #
+      ###################################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_apac"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_apac"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_sky_core"
+            base_parameters:
+              load_type: "standard"
+              region: "apac"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model unified"
+        format: MULTI_TASK
+      ###################################################################################
+      #   euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_eur   #
+      ###################################################################################
+      - name: "euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_eur"
+        <<: *default-continuous-workflow-config
+        continuous:
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_eur"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_charger_session_authorisation_generic_model_unified_sky_core"
+            base_parameters:
+              load_type: "standard"
+              region: "eur"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "streaming"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          refresh type: "continuous"
+          target table: "charger session authorisation generic model unified"
+        format: MULTI_TASK
+      ##############################################################################
+      #              OCPI UPTIME - UK Regulatory Requirements 2025                 #
+      ##############################################################################
+      - name: euh_kpi_uptime_ocpi
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 15 5 1/1 ? *"
+          timezone_id: "UTC"
+          pause_status: "PAUSED"
+        tags:
+          task type: "materialise"
+          refresh type: "scheduled"
+          owner: "Marta"
+          product: "EMIO"
+        format: MULTI_TASK
+        tasks:
+          # Materialise OCPI Uptime - Timestamp Function
+          - task_key: kpi_uptime_ocpi_connector_timestamp
+            notebook_task:
+              notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_functions
+              base_parameters:
+                table_name: kpi_uptime_ocpi_connector_timestamp
+                load_type: standard
+              source: WORKSPACE
+      #      <<: *mvt-cluster-config  # Serverless
+            max_retries: 2
+
+      #############################################################################
+      #   landing_etl_charger_event_batch_driivz_ubitricity_apex                  #
+      #############################################################################
+      - name: "landing_etl_charger_event_batch_driivz_ubitricity_apex"
+        <<: *default-workflow-config
+        schedule: 
+          quartz_cron_expression: "0 0/10 * * * ?"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}    
+        max_concurrent_runs: 1  
+        tasks:
+        - task_key: "landing_etl_charger_event_batch_driivz_ubitricity_apex"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_ocpp_batch_driivz"
+            base_parameters:
+              load type: "incremental"
+              table name: "station_event_log"
+              start load timestamp: "1900-01-01T00:00:00.000000Z"
+              end load timestamp: "9999-01-01T00:00:00.000000Z"
+              drop existing data: "N"
+              source system: "ubitricity-apex"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity apex"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      #############################################################################
+      #   landing_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex               #
+      #############################################################################
+      - name: "landing_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex"
+        <<: *default-workflow-config
+        schedule: 
+          quartz_cron_expression: "0 0/10 * * * ?"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}     
+        max_concurrent_runs: 1     
+        tasks:
+        - task_key: "landing_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_ocpp_batch_driivz"
+            base_parameters:
+              load type: "incremental"
+              table name: "station_raw_data"
+              start load timestamp: "1900-01-01T00:00:00.000000Z"
+              end load timestamp: "9999-01-01T00:00:00.000000Z"
+              drop existing data: "N"
+              source system: "ubitricity-apex"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity apex"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      #############################################################################
+      #   landing_etl_charger_ocpp_raw_periodic_driivz_shell_eu                   #
+      #############################################################################
+      - name: "landing_etl_charger_ocpp_raw_periodic_driivz_shell_eu"
+        <<: *default-workflow-config
+        schedule: 
+          quartz_cron_expression: "27 0 9 ? * Sun"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}        
+        max_concurrent_runs: 1     
+        tasks:
+        - task_key: "landing_etl_charger_ocpp_raw_periodic_driivz_shell_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_ocpp_periodic_batch_driivz"
+            base_parameters:
+              table name: "station_raw_data"        
+              start load timestamp: "2020-01-01T00:00:00.000000Z"
+              end load timestamp: "2020-01-07T00:00:00.000000Z"
+              drop existing data(Y/N): "N"
+              manual load(Y/N): "N"
+              source system: "shell-eu"
+              load days: 7
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          country code: "eu"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      #############################################################################
+      #   landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity                 #
+      #############################################################################
+      - name: "landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity"
+        <<: *default-workflow-config
+        schedule: 
+          quartz_cron_expression: "27 0 11 ? * Sun"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}       
+        max_concurrent_runs: 1     
+        tasks:
+        - task_key: "landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_ocpp_periodic_batch_driivz"
+            base_parameters:
+              table name: "station_raw_data"        
+              start load timestamp: "2020-01-01T00:00:00.000000Z"
+              end load timestamp: "2020-01-07T00:00:00.000000Z"
+              drop existing data(Y/N): "N"
+              manual load(Y/N): "N"
+              source system: "ubitricity"
+              load days: 7
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      #############################################################################
+      #   landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity_apex            #
+      #############################################################################
+      - name: "landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity_apex"
+        <<: *default-workflow-config
+        schedule: 
+          quartz_cron_expression: "0 5 0 ? * *"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}        
+        max_concurrent_runs: 1     
+        tasks:
+        - task_key: "landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity_apex"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_charger_ocpp_periodic_batch_driivz"
+            base_parameters:
+              table name: "station_raw_data"        
+              start load timestamp: "2020-01-01T00:00:00.000000Z"
+              end load timestamp: "2020-01-07T00:00:00.000000Z"
+              drop existing data(Y/N): "N"
+              manual load(Y/N): "N"
+              source system: "ubitricity-apex"
+              load days: 1  # Reload previous day
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity apex"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      ##############################################################################
+      # raw etl batch - sky-shell master charger data                              #
+      ##############################################################################
+      - name: raw_etl_charger_master_sky_shell_batch
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 7 * * ?"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_dev_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+            <<: *batch-cluster-config-large
+        tasks:
+          # EU RAW Tasks
+        - task_key: raw_etl_charger_md_sky_shell_cardreaderinfo_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "cardreaderinfo" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_device_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "device" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemanufacturer_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemanufacturer" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemodel_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemodel" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemodelport_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemodelport" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_deviceport_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "deviceport" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_deviceproperties_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "deviceproperties" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_level_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "level" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_plugtype_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "plugtype" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_porttype_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "porttype" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_site_eu
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "eu"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "site" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        # NA RAW Tasks 
+        - task_key: raw_etl_charger_md_sky_shell_cardreaderinfo_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "cardreaderinfo" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_device_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "device" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemanufacturer_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemanufacturer" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemodel_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemodel" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemodelport_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemodelport" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_deviceport_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "deviceport" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_deviceproperties_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "deviceproperties" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_level_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "level" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_plugtype_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "plugtype" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_porttype_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "porttype" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_site_na          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "na"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "site" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        # AP RAW Tasks 
+        - task_key: raw_etl_charger_md_sky_shell_cardreaderinfo_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "cardreaderinfo" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_device_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "device" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemanufacturer_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemanufacturer" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemodel_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemodel" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_devicemodelport_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "devicemodelport" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_deviceport_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "deviceport" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_deviceproperties_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "deviceproperties" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_level_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "level" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_plugtype_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "plugtype" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_porttype_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "porttype" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        - task_key: raw_etl_charger_md_sky_shell_site_ap          
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_information_md_batch_sky
+            base_parameters:
+              country: "ap"
+              load type: "incremental"
+              source system: "sky" 
+              table name: "site" 
+            source: WORKSPACE
+          job_cluster_key: raw_etl_charger_master_sky_shell_batch_job_cluster
+        tags:
+          pipeline type: "cpo"
+          data source type: "batch"
+          data source: "sky"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+
+
+
+
+
+      #############################################################################
+      #   raw_etl_charger_ocpp_event_batch_driivz_shell_eu                        #
+      #############################################################################
+      - name: "raw_etl_charger_ocpp_event_batch_driivz_shell_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env["DATABRICKS_ENVIRONMENT"]) }}
+        tasks:
+        - task_key: "raw_etl_charger_ocpp_event_batch_driivz_shell_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_ocpp_raw_batch_driivz"
+            base_parameters:
+              country: "eu"
+              load type: "standard"
+              source system: "shell-eu"
+              table name: "charger_event_batch_driivz_shell"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "continuous"
+          target table: "charger_event_batch_driivz_shell"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_ocpp_event_batch_driivz_ubitricity_apex_eu              #
+      #############################################################################
+      - name: "raw_etl_charger_ocpp_event_batch_driivz_ubitricity_apex_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env["DATABRICKS_ENVIRONMENT"]) }}
+        tasks:
+        - task_key: "raw_etl_charger_ocpp_event_batch_driivz_ubitricity_apex_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_ocpp_raw_batch_driivz"
+            base_parameters:
+              country: "eu"
+              load type: "standard"
+              source system: "ubitricity-apex"              
+              table name: "charger_event_batch_driivz_ubitricity_apex"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "continuous"
+          target table: "charger_event_batch_driivz_ubitricity_apex"
+        format: MULTI_TASK
+
+      #############################################################################
+      #   raw_etl_charger_ocpp_event_batch_driivz_ubitricity_eu                   #
+      #############################################################################
+      - name: "raw_etl_charger_ocpp_event_batch_driivz_ubitricity_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env["DATABRICKS_ENVIRONMENT"]) }}
+        tasks:
+        - task_key: "raw_etl_charger_ocpp_event_batch_driivz_ubitricity_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_ocpp_raw_batch_driivz"
+            base_parameters:
+              country: "eu"
+              load type: "standard"
+              source system: "ubitricity"
+              table name: "charger_event_batch_driivz_ubitricity"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "continuous"
+          target table: "charger_event_batch_driivz_ubitricity"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_ocpp_raw_batch_driivz_shell_eu                          #
+      #############################################################################
+      - name: "raw_etl_charger_ocpp_raw_batch_driivz_shell_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env["DATABRICKS_ENVIRONMENT"]) }}
+        tasks:
+        - task_key: "raw_etl_charger_ocpp_raw_batch_driivz_shell_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_ocpp_raw_batch_driivz"
+            base_parameters:
+              country: "eu"
+              load type: "standard"
+              source system: "shell-eu"
+              table name: "charger_ocpp_raw_batch_driivz_shell"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "continuous"
+          target table: "charger_ocpp_raw_batch_driivz_shell"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex_eu                #
+      #############################################################################
+      - name: "raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_ocpp_raw_batch_driivz"
+            base_parameters:
+              country: "eu"
+              load type: "standard"
+              source system: "ubitricity-apex"
+              table name: "charger_ocpp_raw_batch_driivz_ubitricity_apex"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "continuous"
+          target table: "charger_ocpp_raw_batch_driivz_ubitricity_apex"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_eu                     #
+      #############################################################################
+      - name: "raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_eu"
+        <<: *default-continuous-workflow-config
+        # Override pause status for PRE as there is no integration environment available.
+        continuous:
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env["DATABRICKS_ENVIRONMENT"]) }}
+        tasks:
+        - task_key: "raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_ocpp_raw_batch_driivz"
+            base_parameters:
+              country: "eu"
+              load type: "standard"
+              source system: "ubitricity"
+              table name: "charger_ocpp_raw_batch_driivz_ubitricity"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "ocpp"
+          data source type: "batch"
+          data source: "driivz ubitricity"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "continuous"
+          target table: "charger_ocpp_raw_batch_driivz_ubitricity"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_payment_terminal_card_read_event_batch_sky_eu                  #
+      #############################################################################
+      - name: "raw_etl_charger_payment_terminal_card_read_event_batch_sky_eu"
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0/15 * 1/1 * ? *", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "raw_etl_charger_payment_terminal_card_read_event_batch_sky_eu"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_payment_terminal_card_read_event_batch_sky"
+            base_parameters:
+              load_type: "incremental"
+              region: "eur"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "psp"
+          data source type: "batch"
+          data source: "psp"
+          data type: "batch"
+          refresh type: "scheduled"
+          target table: "charger_payment_terminal_card_read_event_batch_sky"
+          owner: "EMIO"
+          product: "EMIO"
+          task type: "etl"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_payment_terminal_card_read_event_batch_sky_na                  #
+      #############################################################################
+      - name: "raw_etl_charger_payment_terminal_card_read_event_batch_sky_na"
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0/15 * 1/1 * ? *", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "raw_etl_charger_payment_terminal_card_read_event_batch_sky_na"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_payment_terminal_card_read_event_batch_sky"
+            base_parameters:
+              load_type: "incremental"
+              region: "na"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "psp"
+          data source type: "batch"
+          data source: "psp"
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+          country code: "na"
+          target table: "charger payment terminal card read event batch sky"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_session_authorisation_srsna_msp_sky_core                  #
+      #############################################################################
+      - name: "raw_etl_charger_session_authorisation_srsna_msp_sky_core"
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0/15 * 1/1 * ? *", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "raw_etl_charger_session_authorisation_srsna_msp_sky_core"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_session_authorisation_srsna_msp_sky_core"
+            base_parameters:
+              load_type: "incremental"
+              region: "na"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "batch"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+          country code: "na"
+          target table: "charger session authorisation srsna msp sky core"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_session_authorisation_srsna_msp_sky_core_apac                  #
+      #############################################################################
+      - name: "raw_etl_charger_session_authorisation_srsna_msp_sky_core_apac"
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0/15 * 1/1 * ? *", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "raw_etl_charger_session_authorisation_srsna_msp_sky_core_apac"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_session_authorisation_srsna_msp_sky_core"
+            base_parameters:
+              load_type: "incremental"
+              region: "apac"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "batch"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+          country code: "apac"
+          target table: "charger session authorisation srsna msp sky core"
+        format: MULTI_TASK
+      #############################################################################
+      #   raw_etl_charger_session_authorisation_srs_msp_sky_core_eur                  #
+      #############################################################################
+      - name: "raw_etl_charger_session_authorisation_srs_msp_sky_core_eur"
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0/15 * 1/1 * ? *", env[ 'DATABRICKS_ENVIRONMENT' ]) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "raw_etl_charger_session_authorisation_srs_msp_sky_core_eur"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_charger_session_authorisation_srsna_msp_sky_core"
+            base_parameters:
+              load_type: "incremental"
+              region: "eur"
+            source: WORKSPACE
+          <<: *streaming-cluster-config
+        tags:
+          pipeline type: "msp"
+          data source type: "batch"
+          data source: "msp"
+          owner: "Sharad"
+          product: "EMIO"
+          task type: "etl"
+          refresh type: "scheduled"
+          country code: "eu"
+          target table: "charger session authorisation srsna msp sky core"
+        format: MULTI_TASK
+      ##############################################################################
+      # test_sql_kpi_generic_expectations                                       #
+      ##############################################################################
+      - name: test_sql_kpi_generic_expectations
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0 8 * * ?", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: "PAUSED"
+        tasks:
+        - task_key: test_sql_kpi_generic_expectations
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/tests/data/expectations/run_expectations"
+            base_parameters:
+              source: "kpi"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "test"
+          data source: "kpi"
+          data type: "batch"
+          owner: "Sharad"
+          product: "EMDL"
+          task type: "test"
+          refresh type: "scheduled"
+          job type: "expectation"
+        format: MULTI_TASK
+      ##############################################################################
+      # test_sql_mapping_generic_expectations                                       #
+      ##############################################################################
+      - name: test_sql_mapping_generic_expectations
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 45 7 1/1 * ? *", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: test_sql_mapping_generic_expectations
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/tests/data/expectations/run_expectations"
+            base_parameters:
+              source: "mapping"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "test"
+          data source: "mapping"
+          data type: "batch"
+          owner: "Sharad"
+          product: "EMDL"
+          task type: "test"
+          refresh type: "scheduled"
+          job type: "expectation"
+        format: MULTI_TASK
+      ##############################################################################
+      # test_sql_msp_generic_expectations                                       #
+      ##############################################################################
+      - name: test_sql_msp_generic_expectations
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 15 7 1/1 * ? *", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: test_sql_msp_generic_expectations
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/tests/data/expectations/run_expectations"
+            base_parameters:
+              source: "msp"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "test"
+          data source: "msp"
+          data type: "batch"
+          owner: "Sharad"
+          product: "EMDL"
+          task type: "test"
+          refresh type: "scheduled"
+          job type: "expectation"
+        format: MULTI_TASK
+      ##############################################################################
+      # test_sql_ocpp_generic_expectations                                       #
+      ##############################################################################
+      - name: test_sql_ocpp_generic_expectations
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0 7 * * ?", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: test_sql_ocpp_generic_expectations
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/tests/data/expectations/run_expectations"
+            base_parameters:
+              source: "ocpp"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "test"
+          data source: "ocpp"
+          data type: "batch"
+          owner: "Sharad"
+          product: "EMDL"
+          task type: "test"
+          refresh type: "scheduled"
+          job type: "expectation"
+        format: MULTI_TASK
+      ##############################################################################
+      # test_sql_payter_generic_expectations                                       #
+      ##############################################################################
+      - name: test_sql_payter_generic_expectations
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 30 7 1/1 * ? *", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: test_sql_payter_generic_expectations
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/tests/data/expectations/run_expectations"
+            base_parameters:
+              source: "payter"
+            source: WORKSPACE
+          <<: *pipeline-cluster-config
+        tags:
+          pipeline type: "test"
+          data source: "psp"
+          data type: "batch"
+          owner: "Sharad"
+          product: "EMDL"
+          task type: "test"
+          refresh type: "scheduled"
+          job type: "expectation"
+        format: MULTI_TASK
+
+
+      ##################################################################################
+      #            Salesforce NA ETL Landing -> Raw -> Silver                          #
+      #         - This workflow will take all the frequently updated                   #
+      #           Salesforce tables and ingest them from source to euh layer           #
+      ##################################################################################
+
+      - name: etl_salesforce_na_hourly
+        <<: *default-workflow-config
+
+        schedule:
+          quartz_cron_expression: "0 0 * * * ?"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: salesforce_na_hourly_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        ################################################################################
+        #                                   Account ingestion                          #
+        ################################################################################
+        # LANDING
+        - task_key: landing_account
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Account"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_account
+          depends_on:
+            - task_key: landing_account
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Account"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_account
+          depends_on:
+            - task_key: raw_account
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Account"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                                   Case ingestion                          #
+        ################################################################################
+        # LANDING
+        - task_key: landing_case
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Case"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_case
+          depends_on:
+            - task_key: landing_case
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Case"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_case
+          depends_on:
+            - task_key: raw_case
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Case"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                                   kiosk ingestion                          #
+        ################################################################################
+        # LANDING
+        - task_key: landing_kiosk
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Kiosk__c"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_kiosk
+          depends_on:
+            - task_key: landing_kiosk
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Kiosk__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_kiosk
+          depends_on:
+            - task_key: raw_kiosk
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Kiosk__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                                kiosk_history ingestion                       #
+        ################################################################################
+        # LANDING
+        - task_key: landing_kiosk_history
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Kiosk__History"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_kiosk_history
+          depends_on:
+            - task_key: landing_kiosk_history
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Kiosk__History"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_kiosk_history
+          depends_on:
+            - task_key: raw_kiosk_history
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Kiosk__History"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                                recordtype ingestion                       #
+        ################################################################################
+        # LANDING
+        - task_key: landing_recordtype
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "RecordType"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_recordtype
+          depends_on:
+            - task_key: landing_recordtype
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "RecordType"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_recordtype
+          depends_on:
+            - task_key: raw_recordtype
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "RecordType"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                         sitetracker_project ingestion                       #
+        ################################################################################
+        # LANDING
+        - task_key: landing_sitetracker_project
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "sitetracker__Project__c"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_sitetracker_project
+          depends_on:
+            - task_key: landing_sitetracker_project
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "sitetracker__Project__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_sitetracker_project
+          depends_on:
+            - task_key: raw_sitetracker_project
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "sitetracker__Project__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                         installed_product ingestion                       #
+        ################################################################################
+        # LANDING
+        - task_key: landing_installed_product
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Installed_Product__c"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_installed_product
+          depends_on:
+            - task_key: landing_installed_product
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Installed_Product__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_installed_product
+          depends_on:
+            - task_key: raw_installed_product
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Installed_Product__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        ################################################################################
+        #                            service_order ingestion                           #
+        ################################################################################
+        # LANDING
+        - task_key: landing_service_order
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Order__c"
+              get_data_duration_days: "30"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+        # RAW
+        - task_key: raw_service_order
+          depends_on:
+            - task_key: landing_service_order
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Order__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+          # EUH
+        - task_key: euh_service_order
+          depends_on:
+            - task_key: raw_service_order
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Order__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_hourly_job_cluster
+
+        tags:
+          pipeline type: "salesforce"
+          data source type: "batch"
+          data source: "salesforce"
+          owner: "Emily"
+          product: "EMDL"
+          task type: "etl"
+          refresh type: "scheduled"
+          keywords: "hourly"
+        format: MULTI_TASK
+
+      ##################################################################################
+      #            Salesforce NA ETL Landing -> Raw -> Silver                          #
+      #         - This workflow will take all the static tables                        #
+      #           Salesforce tables and ingest them from source to euh layer           #
+      ##################################################################################
+
+      - name: etl_salesforce_na_monthly
+        <<: *default-workflow-config
+
+        schedule:
+          quartz_cron_expression: "0 0 0 1 * ?"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: salesforce_na_monthly_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        ################################################################################
+        #                               neilsen_dma ingestion                          #
+        ################################################################################
+        # LANDING
+        - task_key: landing_neilsen_dma
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Nielsen_DMA__c"
+              get_data_duration_days: "-1"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+        # RAW
+        - task_key: raw_neilsen_dma
+          depends_on:
+            - task_key: landing_neilsen_dma
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Nielsen_DMA__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+          # EUH
+        - task_key: euh_neilsen_dma
+          depends_on:
+            - task_key: raw_neilsen_dma
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Nielsen_DMA__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+
+        ################################################################################
+        #                                   product ingestion                          #
+        ################################################################################
+        # LANDING
+        - task_key: landing_product
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Product2"
+              get_data_duration_days: "-1"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+        # RAW
+        - task_key: raw_product
+          depends_on:
+            - task_key: landing_product
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Product2"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+          # EUH
+        - task_key: euh_product
+          depends_on:
+            - task_key: raw_product
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Product2"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+
+        ################################################################################
+        #                             service_group ingestion                          #
+        ################################################################################
+        # LANDING
+        - task_key: landing_service_group
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Group__c"
+              get_data_duration_days: "-1"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+        # RAW
+        - task_key: raw_service_group
+          depends_on:
+            - task_key: landing_service_group
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Group__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+          # EUH
+        - task_key: euh_service_group
+          depends_on:
+            - task_key: raw_service_group
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Group__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+
+        ################################################################################
+        #                        service_group_members ingestion                       #
+        ################################################################################
+        # LANDING
+        - task_key: landing_service_group_members
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Group_Members__c"
+              get_data_duration_days: "-1"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+        # RAW
+        - task_key: raw_service_group_members
+          depends_on:
+            - task_key: landing_service_group_members
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Group_Members__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+          # EUH
+        - task_key: euh_service_group_members
+          depends_on:
+            - task_key: raw_service_group_members
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "SVMXC__Service_Group_Members__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+
+        ################################################################################
+        #                                     user ingestion                           #
+        ################################################################################
+        # LANDING
+        - task_key: landing_user
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "User"
+              get_data_duration_days: "-1"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+        # RAW
+        - task_key: raw_user
+          depends_on:
+            - task_key: landing_user
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "User"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+          # EUH
+        - task_key: euh_user
+          depends_on:
+            - task_key: raw_user
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "User"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+
+        ################################################################################
+        #                                 zip ingestion                                #
+        ################################################################################
+        # LANDING
+        - task_key: landing_zip
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_salesforce_na"
+            base_parameters:
+              table_name: "Zip__c"
+              get_data_duration_days: "-1"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+        # RAW
+        - task_key: raw_zip
+          depends_on:
+            - task_key: landing_zip
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/raw/raw_etl_salesforce_na"
+            base_parameters:
+              table_name: "Zip__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+          # EUH
+        - task_key: euh_zip
+          depends_on:
+            - task_key: raw_zip
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_salesforce_na"
+            base_parameters:
+              table_name: "Zip__c"
+            source: WORKSPACE
+          job_cluster_key: salesforce_na_monthly_job_cluster
+
+        tags:
+          pipeline type: "salesforce"
+          data source type: "batch"
+          data source: "salesforce"
+          owner: "Emily"
+          product: "EMDL"
+          task type: "etl"
+          refresh type: "scheduled"
+          keywords: " monthly"
+        format: MULTI_TASK
+
+      ################################################################################
+      #                                     Acxiom                                   #
+      ################################################################################
+      - name: sibyl_data_refresh_acxiom
+        description: "Workflow available for DE, GB"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: acxiom_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: euh_acxiom
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_acxiom
+            base_parameters:
+              country_code: "SET_COUNTRY_MANUALLY"
+            source: WORKSPACE
+          job_cluster_key: acxiom_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "demographic"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                           DRIVETIME ROAD BUFFER POLYGON                      #
+      ################################################################################
+      - name: sibyl_data_refresh_drivetime_road_buffer_polygons
+        description: |-
+          - calculate/models the drivetime around the road network and create buffer polygons.
+          - You have to run manually by providing right parameter.
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: rbp_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: road_buffer_polygons
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/drivetime_road_buffer_polygons
+            base_parameters:
+              country_code: ""
+            source: WORKSPACE
+          job_cluster_key: rbp_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "intersect"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                                       GMAP                                   #
+      ################################################################################
+      - name: sibyl_data_refresh_gmap
+        description: "For Ingeseting the GMAP(GB) Vehicle RegistrationData"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: gmap_job_cluster
+            <<: *big-batch-workflow-cluster-config
+        tasks:
+        - task_key: euh_gmap
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_gmap_sftp
+            source: WORKSPACE
+          job_cluster_key: gmap_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "vehicle registration"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                               Model Snapshot                                 #
+      ################################################################################
+      - name: sibyl_data_refresh_model_snapshot
+        description: "For all countries. This workflow will save a snapshot of the current modelling tables. You can set multiple countries here by setting the country parameter."
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: model_snapshot_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: snapshot
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/model_snapshot
+            base_parameters:
+              country_multi: "SET_COUNTRY_MANUALLY,IF_MULTIPLE,SET_LIKE_THIS"
+              target_function: "snapshot"
+            source: WORKSPACE
+          job_cluster_key: model_snapshot_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                                 OSM pipelines                                #
+      ################################################################################
+      - name: sibyl_data_refresh_etl_osm
+        description: "Workflow available for all 10 countries in Sibyl"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: osm_docker_job_cluster
+            <<: *webdriver-batch-workflow-cluster-config
+          - job_cluster_key: osm_nondocker_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: landing_osm
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/landing/landing_etl_osm
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+            source: WORKSPACE
+          job_cluster_key: osm_docker_job_cluster
+        - task_key: euh_osm
+          depends_on:
+            - task_key: landing_osm
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_osm
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+            source: WORKSPACE
+          job_cluster_key: osm_nondocker_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "osm"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "etl"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                               Refresh Check                                  #
+      ################################################################################
+      - name: sibyl_data_refresh_refresh_check
+        description: "Workflow available for all 10 countries in Sibyl"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: refresh_check_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: extract_and_process
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/refresh_check
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "extract_and_process"
+            source: WORKSPACE
+          job_cluster_key: refresh_check_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                             Vehicle Registration                             #
+      ################################################################################
+      - name: sibyl_data_refresh_vehicle_registration
+        description: "Workflow available for AT, CH, DE"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: vehicle_registration_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: vehicle_registration
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_vehicle_registration
+            base_parameters:
+              country_code: "SET_COUNTRY_MANUALLY"
+            source: WORKSPACE
+          job_cluster_key: vehicle_registration_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "vehicle registration"
+          refresh type: "manual"
+        format: MULTI_TASK
+      #############################################################################
+      #   materialise_view_tables_sibyl                                           #
+      #############################################################################
+      - name: "materialise_view_tables_sibyl"
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: {{ custom.cron_schedule("0 0 9 ? * SAT,SUN", env['DATABRICKS_ENVIRONMENT']) }}
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        tasks:
+        - task_key: "materialise_view_tables_sibyl"
+          notebook_task:
+            notebook_path: "/Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/common/util/materialise_view_tables_sibyl"
+            source: WORKSPACE
+          <<: *mvt-cluster-config
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Stephen"
+          product: "REXT"
+          task type: "materialise"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      ################################################################################
+      #                        CHARGER DRIVETIME INTERSECT                           #
+      ################################################################################
+      - name: sibyl_regular_charger_location_drivetime_intersect
+        description: |-
+          - calculate intersects between chargers and drivetime polygons.
+          - includes, indirect (PSECT_CENTRE_PEAK_TIME) and transient (PSECT_MAJOR_ROADS+10MINS_PEAK+500M_BUFFER) and LOCATION_PEAK_ISOCHRONE drivetime_types
+          - State code given for other countries will be ignored
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 16 ? * SAT"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+
+        job_clusters:
+          - job_cluster_key: cdi_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: charger_drivetime_intersect
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/charger_drivetime_intersect
+            base_parameters:
+              country_code: "ALL"
+            source: WORKSPACE
+          job_cluster_key: cdi_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "intersect"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                        Charger Location Geo Intersect                        #
+      ################################################################################
+      - name: sibyl_regular_charger_location_geo_intersect
+        description: |-
+          The JOB calculates GEO_ID intersects for Charger Locations.
+          run_type: latest -> only updates the latest changes.
+          run_type: full_load -> processes all locations at onc
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 16 ? * FRI"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+        job_clusters:
+          - job_cluster_key: clgi_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: charger_location_geo_intersect
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/location_geo_intersect
+            base_parameters:
+              run_type: "latest"
+              country_code: "ALL"
+              location_source_table_name: "CHARGER_LOCATION"
+            source: WORKSPACE
+          job_cluster_key: clgi_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      ################################################################################
+      #                        Closest shell site calculation                        #
+      ################################################################################
+      - name: sibyl_regular_closest_shell_site_calculations
+        description: "For each Shell Fuel Station in sibyl markets, calculates it's nearest shell fuel station."
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: cssc_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: closest_shell_site_calculations
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/closest_shell_site_calculations
+            source: WORKSPACE
+          job_cluster_key: cssc_job_cluster
+        tags:
+          data source: sibyl
+          task type: closest shell site
+          refresh type: auto
+          owner: Siddharth
+        format: MULTI_TASK
+      ################################################################################
+      #                           DRIVETIME GEO INTERSECT                            #
+      ################################################################################
+      - name: sibyl_regular_drivetime_geo_intersect
+        description: |-
+          - calculate intersects between geos and drivetime polygons.
+
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: dgi_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: drivetime_geo_intersect
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/drivetime_geo_intersect
+            base_parameters:
+              country_code: ""
+              drivetime_mins: "10"
+            source: WORKSPACE
+          job_cluster_key: dgi_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "intersect"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                        HERE API - LOCATION DRIVETIMES                        #
+      ################################################################################
+      - name: sibyl_regular_here_location_drivetime_polygons
+        description: |-
+          - Fetches the Drivetime shapes from Here Api.
+          - Refer below, for the state codes that we use in the workflow.
+          - US State code given for other countries will be ignored.
+          - setting 'ALL' in country_code will run the job for all countrycodes and all state_codes for US regardless of what state_code is provided.
+          - Setting 'ALL' in state_code while country_code = 'US' as it suggests, will run the job for all state_codes in US.
+          - When country_code = 'ALL' and drivetime_mins = 10, the job will run for every country using drivetime_mins = 10, except for the US, where it will automatically override the value to 8 minutes. TODO: refine flow.
+          - In all other scenarios (i.e., anything other than the special 'ALL' cases), the job runs exactly as specified, with no overrides or special behavior applied.
+          - refresh_type: 
+                      'latest' -> queries the drivetimes of only the locations that's not already present.
+                      'full_load' -> queries the drivetimes of all the locations of the country selected. Updates the locations already present.
+
+          ```
+          US state codes:
+          AL:     Alabama
+          AR:     Arkansas
+          AZ:     Arizona
+          CA:     California
+          CO:     Colorado
+          CT:     Connecticut
+          DE:     Delaware
+          FL:     Florida
+          GA:     Georgia
+          IA:     Iowa
+          ID:     Idaho
+          IL:     Illinois
+          IN:     Indiana
+          KS:     Kansas
+          KY:     Kentucky
+          LA:     Louisiana
+          MA:     Massachusetts
+          MD:     Maryland
+          ME:     Maine
+          MI:     Michigan
+          MN:     Minnesota
+          MO:     Missouri
+          MS:     Mississippi
+          MT:     Montana
+          NC:     North Carolina
+          ND:     North Dakota
+          NE:     Nebraska
+          NH:     New Hampshire
+          NJ:     New Jersey
+          NM:     New Mexico
+          NV:     Nevada
+          NY:     New York
+          OH:     Ohio
+          OK:     Oklahoma
+          OR:     Oregon
+          PA:     Pennsylvania
+          RI:     Rhode Island
+          SC:     South Carolina
+          SD:     South Dakota
+          TN:     Tennessee
+          TX:     Texas
+          UT:     Utah
+          VA:     Virginia
+          VT:     Vermont
+          WA:     Washington
+          WI:     Wisconsin
+          WV:     West Virginia
+          WY:     Wyoming
+          ```
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: here_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: here_api
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/euh/euh_etl_here_api
+            base_parameters:
+              target_function: "location_drivetime_polygons"
+              country_code: "ALL"
+              state_code: "ALL"
+              drivetime_type: "LOCATION_PEAK_ISOCHRONE"
+              drivetime_mins: "10"
+              refresh_type: "latest"
+              
+            source: WORKSPACE
+          job_cluster_key: here_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "drivetimes"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                             Location Geo Intersect                           #
+      ################################################################################
+      - name: sibyl_regular_location_geo_intersect
+        description: |-
+          The JOB calculates GEO_ID intersects for Locations.
+          run_type: latest -> only updates the latest changes.
+          run_type: full_load -> processes all locations at onc
+        <<: *default-workflow-config
+        schedule:
+          quartz_cron_expression: "0 0 16 ? * FRI"
+          timezone_id: "UTC"
+          pause_status: {{ custom.conditionally_pause_non_prod_job(env['DATABRICKS_ENVIRONMENT']) }}
+
+        job_clusters:
+          - job_cluster_key: lgi_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: location_geo_intersect
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/location_geo_intersect
+            base_parameters:
+              run_type: "latest"
+              country_code: "ALL"
+              location_source_table_name: "LOCATION"
+            source: WORKSPACE
+          job_cluster_key: lgi_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "scheduled"
+        format: MULTI_TASK
+      ################################################################################
+      #                                  Bev growth                                  #
+      ################################################################################
+      - name: sibyl_scoring_bev_growth
+        description: "Workflow available for CA, DE, GB"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: bev_growth_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: bev_growth
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/existing_ev_registrations
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "bev_growth"
+            source: WORKSPACE
+          job_cluster_key: bev_growth_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                            Demographic attributes                            #
+      ################################################################################
+      - name: sibyl_scoring_demographic_attributes
+        description: "Workflow available for all 10 countries in Sibyl. Household charging urban only exists for DE."
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: demographic_attributes_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: household_charging
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/demographic_attributes
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "household_charging"
+            source: WORKSPACE
+          job_cluster_key: demographic_attributes_job_cluster
+        - task_key: affluence
+          depends_on:
+            - task_key: household_charging
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/demographic_attributes
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "affluence"
+            source: WORKSPACE
+          job_cluster_key: demographic_attributes_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                                 Destinations                                 #
+      ################################################################################
+      - name: sibyl_scoring_destinations
+        description: "Workflow available for all 10 countries in Sibyl"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: destinations_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: destination
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/destinations
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+            source: WORKSPACE
+          job_cluster_key: destinations_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                               Evse competition                               #
+      ################################################################################
+      - name: sibyl_scoring_evse_competition
+        description: "Workflow available for all 10 countries in Sibyl"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: evse_competition_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: chargers_presence
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/evse_competition
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "chargers_presence"
+            source: WORKSPACE
+          job_cluster_key: evse_competition_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                          Existing ev registrations                           #
+      ################################################################################
+      - name: sibyl_scoring_existing_ev_registrations
+        description: "Workflow available for AT, BE, CA, CH, DE, FR, GB, NL, US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: existing_ev_registrations_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: existing_ev_registrations
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/existing_ev_registrations
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "existing_ev_registrations"
+            source: WORKSPACE
+          job_cluster_key: existing_ev_registrations_job_cluster
+        - task_key: ev_penetration
+          depends_on:
+            - task_key: existing_ev_registrations
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/existing_ev_registrations
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "ev_penetration"
+            source: WORKSPACE
+          job_cluster_key: existing_ev_registrations_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                         Existing low emission zones                          #
+      ################################################################################
+      - name: sibyl_scoring_existing_low_emission_zones
+        description: "Workflow available for BE, DE, FR, GB, NL"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: existing_low_emission_zones_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: lez_presence
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/existing_low_emission_zones
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "lez_presence"
+            source: WORKSPACE
+          job_cluster_key: existing_low_emission_zones_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                             Future ev potential                              #
+      ################################################################################
+      - name: sibyl_scoring_future_ev_potential
+        description: "Workflow available for AT, BE, CA, CH, DE, FR, GB, NL, US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: future_ev_potential_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: future_ev_potential
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/future_ev_potential
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "future_ev_potential"
+            source: WORKSPACE
+          job_cluster_key: future_ev_potential_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                                  Refuelling                                  #
+      ################################################################################
+      - name: sibyl_scoring_refuelling
+        description: "Workflow available for all 10 countries in Sibyl"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: refuelling_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: fuel_station_presence
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/refuelling
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "fuel_station_presence"
+            source: WORKSPACE
+          job_cluster_key: refuelling_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                           Shell charging potential                           #
+      ################################################################################
+      - name: sibyl_scoring_shell_charging_potential
+        description: "Workflow available for all 10 countries in Sibyl"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: shell_charging_potential_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: existing_shell_fuel
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/shell_charging_potential
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "existing_shell_fuel"
+            source: WORKSPACE
+          job_cluster_key: shell_charging_potential_job_cluster
+        - task_key: shell_recharge_presence
+          depends_on:
+            - task_key: existing_shell_fuel
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/shell_charging_potential
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "shell_recharge_presence"
+            source: WORKSPACE
+          job_cluster_key: shell_charging_potential_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                                Traffic counts                                #
+      ################################################################################
+      - name: sibyl_scoring_traffic_counts
+        description: "Workflow available for AT, BE, CA, CH, DE, FR, GB, NL, US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: traffic_counts_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: traffic_counts
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/traffic_counts
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "traffic_counts"
+            source: WORKSPACE
+          job_cluster_key: traffic_counts_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                          Transient bev registrations                         #
+      ################################################################################
+      - name: sibyl_scoring_transient_bev_registration
+        description: "Workflow available for AT, BE, CA, CH, DE, FR, GB, NL, US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: transient_bev_registration_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: transient_bev_registrations
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/transience
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "transient_bev_registrations"
+            source: WORKSPACE
+          job_cluster_key: transient_bev_registration_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                          Transient evse competition                          #
+      ################################################################################
+      - name: sibyl_scoring_transient_evse_competition
+        description: "Workflow available for AT, BE, CA, CH, DE, FR, GB, NL, US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: transient_evse_competition_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: transient_charger_presence
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/evse_competition
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "transient_charger_presence"
+            source: WORKSPACE
+          job_cluster_key: transient_evse_competition_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                            Transient road network                            #
+      ################################################################################
+      - name: sibyl_scoring_transient_road_network
+        description: "Workflow available for AT, BE, CA, CH, DE, FR, GB, NL, US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: transient_road_network_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: transient_road_network
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/transience
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "transient_road_network"
+            source: WORKSPACE
+          job_cluster_key: transient_road_network_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
+      ################################################################################
+      #                              Zev mandate states                              #
+      ################################################################################
+      - name: sibyl_scoring_zev_mandate_states
+        description: "Workflow available for US"
+        <<: *default-workflow-config
+        job_clusters:
+          - job_cluster_key: zev_mandate_states_job_cluster
+            <<: *batch-workflow-cluster-config
+        tasks:
+        - task_key: us_zev_presence
+          notebook_task:
+            notebook_path: /Repos/dbx-repo/emob-datalake-databricks/emob_datalake_databricks/notebooks/modelling/sibyl/existing_low_emission_zones
+            base_parameters:
+              country: "SET_COUNTRY_MANUALLY"
+              target_function: "us_zev_presence"
+            source: WORKSPACE
+          job_cluster_key: zev_mandate_states_job_cluster
+        tags:
+          pipeline type: "sibyl"
+          data source type: "batch"
+          data source: "sibyl"
+          owner: "Siddharth"
+          product: "REXT"
+          task type: "modelling"
+          refresh type: "manual"
+        format: MULTI_TASK
