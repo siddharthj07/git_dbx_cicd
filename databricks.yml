@@ -26,6 +26,7 @@ variables:
 
 targets:
   dev:
+    default: true
     variables:
       email_notifications:
         on_failure:
