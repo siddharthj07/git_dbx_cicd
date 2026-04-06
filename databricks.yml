@@ -24,12 +24,12 @@ variables:
   notification_settings: 
     default: {}
 
-targets:
-  dev:
-    variables:
-      email_notifications:
-        on_failure:
-          - "francisdev007@gmail.com"
-      webhook_notifications:
-        on_failure:
-          - "https://hooks.slack.com/services/T00000000/B00000000/"
+# targets:
+#   dev:
+#     variables:
+#       email_notifications:
+#         on_failure:
+#           - "francisdev007@gmail.com"
+#       webhook_notifications:
+#         on_failure:
+#           - "https://hooks.slack.com/services/T00000000/B00000000/"
