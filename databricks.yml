@@ -42,3 +42,17 @@ targets:
       webhook_notifications:
         on_failure:
           - "https://hooks.slack.com/services/T00000000/B00000000/"
+
+    # email_notifications:
+    #   no_alert_for_skipped_runs: false
+    #   no_alert_for_canceled_runs: false
+    #   alert_on_last_attempt: false
+
+    # # Teams NOTIFICATIONS
+    # webhook_notifications:
+    #   on_failure:
+    #       # This is the webhook destination ID to dw_pipeline_errors (ID Differs based on environment)
+    #       id: {{ custom.get_error_channel_teams_id(env['DATABRICKS_ENVIRONMENT']) }}
+    # notification_settings:
+    #   no_alert_for_skipped_runs: true
+    #   no_alert_for_canceled_runs: true
