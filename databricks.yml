@@ -39,6 +39,7 @@ targets:
   prod:
     variables:
       default_email_notifications:
+        no_alert_for_skipped_runs: true
         on_failure:
           - "francisdev007@gmail.com"
       default_webhook_notifications:
