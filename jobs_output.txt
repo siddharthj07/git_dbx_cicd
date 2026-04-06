@@ -1469,7 +1469,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "landing_etl_charger_payment_terminal_event_transaction_batch_payter_eu"
         notebook_task:
@@ -1486,6 +1486,16 @@ resources:
         owner: "Jack"
         product: "EMIO"
         refresh type: "incremental"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### landing_etl_charger_payment_terminal_event_transaction_batch_payter_na
 resources:
@@ -1496,7 +1506,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "landing_etl_charger_payment_terminal_event_transaction_batch_payter_na"
         notebook_task:
@@ -1514,6 +1524,16 @@ resources:
         owner: "Jack"
         product: "EMIO"
         refresh type: "incremental"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### landing_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu
 resources:
@@ -1633,7 +1653,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 5/2 * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "euh_etl_optimise_table"
         notebook_task:
@@ -1647,6 +1667,16 @@ resources:
         refresh type: "scheduled"
         target table: "optimisation"
         keywords: "vaccum tables"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### powerbi_refresh_service
 resources:
@@ -4372,7 +4402,7 @@ resources:
 ### EVEC - Automated Action Service
 resources:
   jobs:
-    EVEC - Automated Action Service:
+    evec_-_automated_action_service:
       name: EVEC - Automated Action Service
       <<: *default-alerts-workflow-config
       schedule:
@@ -4404,7 +4434,7 @@ resources:
 ### EVEC - Charger Alert Auto Allocation Service
 resources:
   jobs:
-    EVEC - Charger Alert Auto Allocation Service:
+    evec_-_charger_alert_auto_allocation_service:
       name: EVEC - Charger Alert Auto Allocation Service
       <<: *default-alerts-workflow-config
       schedule:
@@ -4437,7 +4467,7 @@ resources:
       schedule:
         quartz_cron_expression: "4 0/20 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: Datafeed_Offline
         notebook_task:
@@ -4521,6 +4551,16 @@ resources:
         owner: "Sohini"
         product: "EVEC"
         refresh type: "scheduled"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### charger_mno_alerts
 resources:
@@ -4531,7 +4571,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "charger_mno_eseye_dfi_alert"
         notebook_task:
@@ -4560,6 +4600,16 @@ resources:
         task type: "alert"
         refresh type: "scheduled"
         target table: "charger alert"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### charger_payment_terminal_alerts
 resources:
@@ -4570,7 +4620,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 5/10 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: Payter_State_Idle
         notebook_task:
@@ -4662,6 +4712,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_100100100_charger_faulted_batch_close
 resources:
@@ -4672,7 +4732,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 5/5 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       tasks:
       - task_key: "euh_charger_alert_100100100_charger_faulted_batch_close"
         notebook_task:
@@ -4747,7 +4807,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 6/10 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "Inoperative_Alert_Verification_Close"
         notebook_task:
@@ -4762,6 +4822,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert action"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_100300400_inoperative_alerts_auto_generation_realtime_create
 resources:
@@ -4820,7 +4890,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 30 2 * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "euh_charger_alert_150100100_charger_low_csr"
         notebook_task:
@@ -4846,6 +4916,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_200100100_charger_snooze_batch_close
 resources:
@@ -4856,7 +4936,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 */10 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "euh_charger_alert_200100100_charger_snooze_batch_close"
         notebook_task:
@@ -4871,6 +4951,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_datafeed_charger_offline_batch
 resources:
@@ -4881,7 +4971,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 5/5 * * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       tasks:
       - task_key: Data_feed_Interruption_alert
         notebook_task:
@@ -8858,7 +8948,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       job_clusters:
         - job_cluster_key: ptp_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -10189,7 +10279,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 30 5 * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       job_clusters:
         - job_cluster_key: parallel_charging_session_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -10219,7 +10309,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       job_clusters:
         - job_cluster_key: cpo_tariffs_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -10634,7 +10724,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       job_clusters:
         - job_cluster_key: lookup_tables_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -10812,7 +10902,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       tasks:
       - task_key: landing_mapping_operator
         libraries:
@@ -10882,7 +10972,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 12 * * ?"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       job_clusters:
         - job_cluster_key: pipeline_mapping_cpo_switch_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -11817,7 +11907,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("PAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: "PAUSED"
       job_clusters:
         - job_cluster_key: taxi_gov_sg_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -11964,7 +12054,7 @@ resources:
       schedule:
         quartz_cron_expression: {{ custom.raw_etl_postgres_schedule(env['DATABRICKS_ENVIRONMENT']) }}
         timezone_id: "UTC"
-        pause_status: {{ custom.schedule_pause("UNPAUSED", env['DATABRICKS_ENVIRONMENT']) }}
+        pause_status: ${var.conditional_pause_status}
       tasks:
       - task_key: "raw_etl_postgres"
         notebook_task:
@@ -11978,6 +12068,16 @@ resources:
         owner: "SOM"
         product: "EMDL"
         refresh type: "scheduled"
+targets:
+  dev:
+    variables:
+      conditional_pause_status: "PAUSED"
+  pre:
+    variables:
+      conditional_pause_status: "UNPAUSED"
+  prod:
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### sftp_armed
 resources:
@@ -12276,7 +12376,7 @@ resources:
 ### Sandbox_Table_Cleanup_Alert
 resources:
   jobs:
-    Sandbox_Table_Cleanup_Alert:
+    sandbox_table_cleanup_alert:
       name: Sandbox_Table_Cleanup_Alert
       <<: *default-workflow-config
       schedule:
