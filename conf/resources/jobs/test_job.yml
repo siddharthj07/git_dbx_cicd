@@ -6,9 +6,9 @@ resources:
       timeout_seconds: 0
       max_concurrent_runs: 1
       permissions: ${var.job_permissions}
-      email_notifications: ${var.email_notifications}
-      webhook_notifications: ${var.webhook_notifications}
-      notification_settings: ${var.notification_settings}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       
       job_clusters:
         - job_cluster_key: job_key_1

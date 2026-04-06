@@ -17,28 +17,56 @@ variables:
       - user_name: "itishreebswl@gmail.com"
         level: CAN_VIEW
 
-  email_notifications: 
-    default: {}
-  webhook_notifications:
-    default: {}
-  notification_settings: 
-    default: {}
+  default_email_notifications:
+    default: 
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+  default_webhook_notifications:
+    default: 
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+  default_notification_settings:
+    default:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
 
 targets:
   dev:
     default: true
     variables:
       email_notifications:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
         on_failure:
-          - "francisdev007@gmail.com"
+          - "itishreebswl@gmail.com"
       webhook_notifications:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
         on_failure:
           - "https://hooks.slack.com/services/T00000000/B00000000/"
   prod:
     variables:
       email_notifications:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
         on_failure:
-          - "prod-notifications@example.com"
+          - "francisdev007@gmail.com"
       webhook_notifications:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
         on_failure:
           - "https://hooks.slack.com/services/T00000000/B00000000/"
+
+    # email_notifications:
+    #   no_alert_for_skipped_runs: false
+    #   no_alert_for_canceled_runs: false
+    #   alert_on_last_attempt: false
+
+    # # Teams NOTIFICATIONS
+    # webhook_notifications:
+    #   on_failure:
+    #       # This is the webhook destination ID to dw_pipeline_errors (ID Differs based on environment)
+    #       id: {{ custom.get_error_channel_teams_id(env['DATABRICKS_ENVIRONMENT']) }}
+    # notification_settings:
+    #   no_alert_for_skipped_runs: true
+    #   no_alert_for_canceled_runs: true
