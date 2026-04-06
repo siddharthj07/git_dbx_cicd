@@ -1486,13 +1486,16 @@ resources:
         owner: "Jack"
         product: "EMIO"
         refresh type: "incremental"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### landing_etl_charger_payment_terminal_event_transaction_batch_payter_na
 resources:
@@ -1521,13 +1524,16 @@ resources:
         owner: "Jack"
         product: "EMIO"
         refresh type: "incremental"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### landing_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu
 resources:
@@ -1661,13 +1667,16 @@ resources:
         refresh type: "scheduled"
         target table: "optimisation"
         keywords: "vaccum tables"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### powerbi_refresh_service
 resources:
@@ -4542,13 +4551,16 @@ resources:
         owner: "Sohini"
         product: "EVEC"
         refresh type: "scheduled"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### charger_mno_alerts
 resources:
@@ -4588,13 +4600,16 @@ resources:
         task type: "alert"
         refresh type: "scheduled"
         target table: "charger alert"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### charger_payment_terminal_alerts
 resources:
@@ -4697,13 +4712,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_100100100_charger_faulted_batch_close
 resources:
@@ -4804,13 +4822,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert action"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_100300400_inoperative_alerts_auto_generation_realtime_create
 resources:
@@ -4895,13 +4916,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_200100100_charger_snooze_batch_close
 resources:
@@ -4927,13 +4951,16 @@ resources:
         product: "EVEC"
         refresh type: "scheduled"
         target table: "charger alert"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### euh_charger_alert_datafeed_charger_offline_batch
 resources:
@@ -12041,13 +12068,16 @@ resources:
         owner: "SOM"
         product: "EMDL"
         refresh type: "scheduled"
-variables:
+targets:
   dev:
-    conditional_pause_status: "PAUSED"
+    variables:
+      conditional_pause_status: "PAUSED"
   pre:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
   prod:
-    conditional_pause_status: "UNPAUSED"
+    variables:
+      conditional_pause_status: "UNPAUSED"
 
 ### sftp_armed
 resources:

@@ -219,13 +219,16 @@ def build_job_yaml(
     if needs_conditional_pause_var:
         lines.extend(
             [
-                "variables:",
+                "targets:",
                 "  dev:",
-                '    conditional_pause_status: "PAUSED"',
+                "    variables:",
+                '      conditional_pause_status: "PAUSED"',
                 "  pre:",
-                '    conditional_pause_status: "UNPAUSED"',
+                "    variables:",
+                '      conditional_pause_status: "UNPAUSED"',
                 "  prod:",
-                '    conditional_pause_status: "UNPAUSED"',
+                "    variables:",
+                '      conditional_pause_status: "UNPAUSED"',
             ]
         )
 
