@@ -26,9 +26,10 @@ variables:
 
 targets:
   dev:
-    email_notifications:
-      on_failure:
-        - "francisdev007@gmail.com"
-    webhook_notifications:
-      on_failure:
-        - "https://hooks.slack.com/services/T00000000/B00000000/"
+    variables:
+      email_notifications:
+        on_failure:
+          - "francisdev007@gmail.com"
+      webhook_notifications:
+        on_failure:
+          - "https://hooks.slack.com/services/T00000000/B00000000/"
