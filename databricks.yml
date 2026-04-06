@@ -18,13 +18,9 @@ variables:
         level: CAN_VIEW
 
   default_email_notifications:
-    default: 
-      no_alert_for_skipped_runs: true
-      no_alert_for_canceled_runs: true
+    default: {}
   default_webhook_notifications:
-    default: 
-      no_alert_for_skipped_runs: true
-      no_alert_for_canceled_runs: true
+    default: {}
   default_notification_settings:
     default:
       no_alert_for_skipped_runs: true
@@ -35,27 +31,19 @@ targets:
     default: true
     variables:
       default_email_notifications:
-        no_alert_for_skipped_runs: true
-        no_alert_for_canceled_runs: true
         on_failure:
           - "itishreebswl@gmail.com"
       default_webhook_notifications:
-        no_alert_for_skipped_runs: true
-        no_alert_for_canceled_runs: true
         on_failure:
-          - "https://hooks.slack.com/services/T00000000/B00000000/"
+          - id: "https://hooks.slack.com/services/T00000000/B00000000/"
   prod:
     variables:
       default_email_notifications:
-        no_alert_for_skipped_runs: true
-        no_alert_for_canceled_runs: true
         on_failure:
           - "francisdev007@gmail.com"
       default_webhook_notifications:
-        no_alert_for_skipped_runs: true
-        no_alert_for_canceled_runs: true
         on_failure:
-          - "https://hooks.slack.com/services/T00000000/B00000000/"
+          - id: "https://hooks.slack.com/services/T00000000/B00000000/"
 
     # email_notifications:
     #   no_alert_for_skipped_runs: false
