@@ -17,12 +17,19 @@ variables:
       - user_name: "itishreebswl@gmail.com"
         level: CAN_VIEW
 
-  email_notifications: {}
-  webhook_notifications: {}
-  notification_settings: {}
+  email_notifications: 
+    default: {}
+  webhook_notifications:
+    default: {}
+  notification_settings: 
+    default: {}
 
 targets:
   dev:
     default: true
-
-  prod: {}
+    email_notifications:
+      on_failure:
+        - "francisdev007@gmail.com"
+    webhook_notifications:
+      on_failure:
+        - "https://hooks.slack.com/services/T00000000/B00000000/"
