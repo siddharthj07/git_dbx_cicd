@@ -113,8 +113,13 @@ def replace_anchor_merges(section: str) -> str:
     )
 
 
-def transform_schedule(schedule: str) -> str:
+def normalize_job_key(job_name: str) -> str:
+    return re.sub(r"\s+", "_", job_name.strip()).lower()
+
+
+def transform_schedule(schedule: str) -> Tuple[str, bool]:
     transformed = schedule
+    needs_conditional_pause_var = False
 
     # quartz_cron_expression: {{ custom.cron_schedule("...", ...) }} -> quartz_cron_expression: "..."
     transformed = re.sub(
@@ -138,7 +143,23 @@ def transform_schedule(schedule: str) -> str:
         flags=re.MULTILINE,
     )
 
-    return transformed
+    def replace_schedule_pause(match: re.Match[str]) -> str:
+        nonlocal needs_conditional_pause_var
+        indent = match.group(1)
+        pause_value = match.group(2).upper()
+        if pause_value == "PAUSED":
+            return f'{indent}pause_status: "PAUSED"'
+        needs_conditional_pause_var = True
+        return f"{indent}pause_status: ${{var.conditional_pause_status}}"
+
+    transformed = re.sub(
+        r'^(\s*)pause_status:\s*\{\{\s*custom\.schedule_pause\(\s*["\'](PAUSED|UNPAUSED)["\']\s*,.*\)\s*\}\}\s*$',
+        replace_schedule_pause,
+        transformed,
+        flags=re.MULTILINE,
+    )
+
+    return transformed, needs_conditional_pause_var
 
 
 def reindent_section(section: str, old_indent: int, new_indent: int) -> str:
@@ -170,6 +191,7 @@ def extract_product_from_tags(tags_section: str | None) -> str:
 
 
 def build_job_yaml(
+    job_key: str,
     job_name: str,
     name_level_merges: str | None,
     schedule: str | None,
@@ -177,11 +199,12 @@ def build_job_yaml(
     tasks: str | None,
     tags: str | None,
     old_indent: int,
+    needs_conditional_pause_var: bool,
 ) -> str:
     lines = [
         "resources:",
         "  jobs:",
-        f"    {job_name}:",
+        f"    {job_key}:",
         f"      name: {job_name}",
     ]
 
@@ -192,6 +215,19 @@ def build_job_yaml(
         if not section:
             continue
         lines.append(reindent_section(section, old_indent, 6))
+
+    if needs_conditional_pause_var:
+        lines.extend(
+            [
+                "variables:",
+                "  dev:",
+                '    conditional_pause_status: "PAUSED"',
+                "  pre:",
+                '    conditional_pause_status: "UNPAUSED"',
+                "  prod:",
+                '    conditional_pause_status: "UNPAUSED"',
+            ]
+        )
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -210,6 +246,7 @@ def parse_jobs(source_text: str) -> Tuple[Dict[str, Dict[str, str]], Dict[str, s
         lines = block.splitlines()
         child_indent = detect_child_indent(lines)
         job_name = extract_name(block)
+        job_key = normalize_job_key(job_name)
 
         name_level_merges = extract_name_level_merges(lines, child_indent)
         schedule = extract_section(lines, "schedule", child_indent)
@@ -217,14 +254,16 @@ def parse_jobs(source_text: str) -> Tuple[Dict[str, Dict[str, str]], Dict[str, s
         tasks = extract_section(lines, "tasks", child_indent)
         tags = extract_section(lines, "tags", child_indent)
 
+        needs_conditional_pause_var = False
         if schedule:
-            schedule = transform_schedule(schedule)
+            schedule, needs_conditional_pause_var = transform_schedule(schedule)
         if job_clusters:
             job_clusters = replace_anchor_merges(job_clusters)
         if tasks:
             tasks = replace_anchor_merges(tasks)
 
         job_yaml = build_job_yaml(
+            job_key,
             job_name,
             name_level_merges,
             schedule,
@@ -232,6 +271,7 @@ def parse_jobs(source_text: str) -> Tuple[Dict[str, Dict[str, str]], Dict[str, s
             tasks,
             tags,
             child_indent,
+            needs_conditional_pause_var,
         )
         all_jobs[job_name] = job_yaml
 
