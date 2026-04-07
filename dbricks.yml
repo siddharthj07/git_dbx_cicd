@@ -2,77 +2,66 @@ bundle:
   name: emob-datalake-databricks
 
 include:
-  - resources/clusters.yml
-  - resources/jobs/**/*.yml
+  - conf/clusters.yml
+  - conf/jobs/**/*.yml
 
 variables:
   conditionally_pause_non_prod_job:
-    description: "Conditionally pause non-prod jobs based on environment"
-    type: string
     default: "PAUSED"
   
   conditionally_pause_dev_job:
-    description: "Conditionally pause dev jobs based on environment"
-    type: string
     default: "PAUSED"
 
   default_engineering_group_permission:
-    description: "Permission level for the engineering group in Databricks"
-    type: string
     default: "CAN_MANAGE_RUN"
 
   alembic_engineering_group_permission:
-    description: "Permission level for the engineering group in Databricks"
-    type: string
     default: "CAN_MANAGE_RUN"
 
   default_permissions:
     description: "Permissions to set for the Databricks workspace"
     type: complex
     default: 
-      - user_name: "service-principal://emdl-databricks-cicd-sp"
-        permission_level: "IS_OWNER"
-      - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-admin-support"
-        permission_level: "CAN_MANAGE"
-      - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-engineering"
-        permission_level: ${var.default_engineering_group_permission}
-      - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-datascience"
-        permission_level: "CAN_VIEW"
+      - level: "IS_OWNER"
+        service_principal_name: "bd709307-9f6f-4b1a-bf7a-289a2d6438f7"  # application_id of emdl-databricks-cicd-sp
+      - level: "CAN_MANAGE"
+        group_name: "AZ-SCS-GRP-emobility-datahub-databricks-admin-support"
+      - level: ${var.default_engineering_group_permission}
+        group_name: "AZ-SCS-GRP-emobility-datahub-databricks-engineering"
+      - level: "CAN_VIEW"
+        group_name: "AZ-SCS-GRP-emobility-datahub-databricks-datascience"
 
   alembic_permissions:
     description: "Permissions to set for the Databricks workspace"
     type: complex
     default: 
-      - user_name: "service-principal://emdl-databricks-cicd-sp"
-        permission_level: "IS_OWNER"
+      - service_principal_name: "bd709307-9f6f-4b1a-bf7a-289a2d6438f7"  # application_id of emdl-databricks-cicd-sp
+        level: "IS_OWNER"
       - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-admin-support"
-        permission_level: "CAN_MANAGE"
+        level: "CAN_MANAGE"
       - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-engineering"
-        permission_level: ${var.alembic_engineering_group_permission}
+        level: ${var.alembic_engineering_group_permission}
       - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-datascience"
-        permission_level: "CAN_VIEW"
+        level: "CAN_VIEW"
   
   alerts_permissions:
     description: "Permissions to set for the Databricks workspace for alerts"
     type: complex
     default:
-      - user_name: "service-principal://emdl-databricks-cicd-sp"
-        permission_level: "IS_OWNER"
+      - service_principal_name: "bd709307-9f6f-4b1a-bf7a-289a2d6438f7"  # application_id of emdl-databricks-cicd-sp
+        level: "IS_OWNER"
       - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-admin-support"
-        permission_level: "CAN_MANAGE"
+        level: "CAN_MANAGE"
       - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-engineering"
-        permission_level: "CAN_MANAGE_RUN"
+        level: "CAN_MANAGE_RUN"
       - group_name: "AZ-SCS-GRP-emobility-datahub-databricks-datascience"
-        permission_level: "CAN_VIEW"
+        level: "CAN_VIEW"
 
   default_email_notifications:
     default: 
       no_alert_for_skipped_runs: true
-      no_alert_for_canceled_runs: true
   default_webhook_notifications:
-    default: 
-      no_alert_for_skipped_runs: true
-      no_alert_for_canceled_runs: true
+    default: {}
   default_notification_settings:
     default:
       no_alert_for_skipped_runs: true
@@ -81,10 +70,7 @@ variables:
   alembic_email_notifications:
     default:
       no_alert_for_skipped_runs: false
-      no_alert_for_canceled_runs: false
-      alert_on_last_attempt: false
-  alembic_webhook_notifications:
-    default: {}
+  # alembic_webhooks: uses default webhook notifications config
   alembic_notification_settings:
     default:
       no_alert_for_skipped_runs: true
@@ -93,11 +79,8 @@ variables:
   alerts_email_notifications:
     default: 
       no_alert_for_skipped_runs: true
-      no_alert_for_canceled_runs: true
-      alert_on_last_attempt: false
 
-
-# Environment-specific overrides for variables.
+# Environment-specific overrides.
 targets:
   dev:
     default: true
@@ -108,7 +91,7 @@ targets:
       alembic_engineering_group_permission: "CAN_MANAGE"
       default_webhook_notifications:  # same for alembic config
         on_failure:
-          - "3f29be64-de42-4226-81fb-5e9bbed5a178"
+          - id: "3f29be64-de42-4226-81fb-5e9bbed5a178"
 
   pre:
     variables:
@@ -120,7 +103,7 @@ targets:
 
       default_webhook_notifications: # same for alembic config
         on_failure:
-          - "9e604129-ec65-479f-9ad0-8135a6ed3034"
+          - id: "9e604129-ec65-479f-9ad0-8135a6ed3034"
 
   prod:
     variables:
@@ -132,17 +115,14 @@ targets:
 
       default_email_notifications:
         no_alert_for_skipped_runs: false
-        no_alert_for_canceled_runs: false
         on_failure:
-          - "GXDSeMobilityDNASOM@shell.com"
+          - id: "GXDSeMobilityDNASOM@shell.com"
       default_webhook_notifications: # same for alembic config
         on_failure:
-          - "b8da6889-a4bf-4fe9-a2df-257723f48901"
-          
+          - id: "b8da6889-a4bf-4fe9-a2df-257723f48901"
+
       alerts_email_notifications:
         no_alert_for_skipped_runs: true
-        no_alert_for_canceled_runs: true
-        alert_on_last_attempt: true
         on_failure:
-          - "GXDSeMobilityDNASOM@shell.com"
+          - id: "GXDSeMobilityDNASOM@shell.com"
 
