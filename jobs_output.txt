@@ -12,7 +12,12 @@ resources:
   jobs:
     alembic_refresh_connections:
       name: alembic_refresh_connections
-      <<: *alembic-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.alembic_permissions}
+      email_notifications: ${var.alembic_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.alembic_notification_settings}
       tasks:
         - task_key: "refresh_connections"
           new_cluster: ${var.custom_clusters.pipeline-cluster-config}
@@ -58,7 +63,12 @@ resources:
   jobs:
     etl_charger_ocpp_raw_batch_sky_ap:
       name: etl_charger_ocpp_raw_batch_sky_ap
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 15 0 * * ?"
         timezone_id: "UTC"
@@ -99,7 +109,12 @@ resources:
   jobs:
     etl_charger_ocpp_raw_batch_sky_eu:
       name: etl_charger_ocpp_raw_batch_sky_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 15 0 * * ?"
         timezone_id: "UTC"
@@ -139,7 +154,12 @@ resources:
   jobs:
     etl_charger_ocpp_raw_batch_sky_na:
       name: etl_charger_ocpp_raw_batch_sky_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 15 0 * * ?"
         timezone_id: "UTC"
@@ -179,7 +199,12 @@ resources:
   jobs:
     etl_charger_session_authorisation_cxm_dsp:
       name: etl_charger_session_authorisation_cxm_dsp
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 * * * ?"
         timezone_id: "UTC"
@@ -233,7 +258,12 @@ resources:
   jobs:
     etl_charger_session_authorisation_cxm_eu_postgres:
       name: etl_charger_session_authorisation_cxm_eu_postgres
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 6,12,18 * * ?"
         timezone_id: "UTC"
@@ -281,7 +311,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_core:
       name: euh_etl_charger_ocpp_generic_model_core
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_core"
         notebook_task:
@@ -304,7 +341,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_unified_batch_driivz_shell_eu:
       name: euh_etl_charger_ocpp_generic_model_unified_batch_driivz_shell_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_shell_eu"
         notebook_task:
@@ -331,7 +375,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_apex_eu:
       name: euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_apex_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_apex_eu"
         notebook_task:
@@ -358,7 +409,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_eu:
       name: euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_unified_batch_driivz_ubitricity_eu"
         notebook_task:
@@ -385,7 +443,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_unified_realtime_ap:
       name: euh_etl_charger_ocpp_generic_model_unified_realtime_ap
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_unified_realtime_ap"
         notebook_task:
@@ -411,7 +476,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_unified_realtime_na:
       name: euh_etl_charger_ocpp_generic_model_unified_realtime_na
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_unified_realtime_na"
         notebook_task:
@@ -436,7 +508,14 @@ resources:
   jobs:
     euh_etl_charger_payment_terminal_event_card_read_core:
       name: euh_etl_charger_payment_terminal_event_card_read_core
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_payment_terminal_event_card_read_core"
         notebook_task:
@@ -459,7 +538,14 @@ resources:
   jobs:
     euh_etl_charger_payment_terminal_event_card_read_unified:
       name: euh_etl_charger_payment_terminal_event_card_read_unified
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_payment_terminal_event_card_read_unified"
         notebook_task:
@@ -482,7 +568,14 @@ resources:
   jobs:
     euh_etl_charger_payment_terminal_event_core:
       name: euh_etl_charger_payment_terminal_event_core
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_payment_terminal_event_core"
         notebook_task:
@@ -505,7 +598,14 @@ resources:
   jobs:
     euh_etl_charger_payment_terminal_event_unified:
       name: euh_etl_charger_payment_terminal_event_unified
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_payment_terminal_event_unified"
         notebook_task:
@@ -528,7 +628,14 @@ resources:
   jobs:
     euh_etl_charger_payment_terminal_incomplete_transaction_unified:
       name: euh_etl_charger_payment_terminal_incomplete_transaction_unified
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_payment_terminal_incomplete_transaction_unified"
         notebook_task:
@@ -551,7 +658,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_core:
       name: euh_etl_charger_session_authorisation_generic_model_core
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_core"
         notebook_task:
@@ -574,7 +688,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified:
       name: euh_etl_charger_session_authorisation_generic_model_unified
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified"
         notebook_task:
@@ -598,7 +719,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_apac:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_apac
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_apac"
         notebook_task:
@@ -622,7 +750,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_eur:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_eur
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srs_sky_core_eur"
         notebook_task:
@@ -646,7 +781,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srsna_cxm:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srsna_cxm
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_cxm"
         notebook_task:
@@ -670,7 +812,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_apac:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_apac
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_apac"
         notebook_task:
@@ -694,7 +843,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_na:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_na
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_na"
         notebook_task:
@@ -718,7 +874,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srsna_sky_core:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srsna_sky_core
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_sky_core"
         notebook_task:
@@ -742,7 +905,12 @@ resources:
   jobs:
     euh_kpi_emio_daily:
       name: euh_kpi_emio_daily
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 15 0 ? * *"
         timezone_id: "UTC"
@@ -1018,7 +1186,12 @@ resources:
   jobs:
     euh_kpi_emio_regular:
       name: euh_kpi_emio_regular
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0/4 * * ?"
         timezone_id: "UTC"
@@ -1107,7 +1280,12 @@ resources:
   jobs:
     euh_kpi_emio_weekly:
       name: euh_kpi_emio_weekly
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 ? * SUN *"
         timezone_id: "UTC"
@@ -1270,7 +1448,12 @@ resources:
   jobs:
     euh_kpi_uptime_ocpi:
       name: euh_kpi_uptime_ocpi
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 15 5 1/1 ? *"
         timezone_id: "UTC"
@@ -1301,7 +1484,12 @@ resources:
   jobs:
     landing_etl_charger_event_batch_driivz_ubitricity_apex:
       name: landing_etl_charger_event_batch_driivz_ubitricity_apex
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule: 
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -1333,7 +1521,12 @@ resources:
   jobs:
     landing_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex:
       name: landing_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule: 
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -1365,7 +1558,12 @@ resources:
   jobs:
     landing_etl_charger_ocpp_raw_periodic_driivz_shell_eu:
       name: landing_etl_charger_ocpp_raw_periodic_driivz_shell_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule: 
         quartz_cron_expression: "27 0 9 ? * Sun"
         timezone_id: "UTC"
@@ -1399,7 +1597,12 @@ resources:
   jobs:
     landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity:
       name: landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule: 
         quartz_cron_expression: "27 0 11 ? * Sun"
         timezone_id: "UTC"
@@ -1432,7 +1635,12 @@ resources:
   jobs:
     landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity_apex:
       name: landing_etl_charger_ocpp_raw_periodic_driivz_ubitricity_apex
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule: 
         quartz_cron_expression: "0 5 0 ? * *"
         timezone_id: "UTC"
@@ -1465,7 +1673,12 @@ resources:
   jobs:
     landing_etl_charger_payment_terminal_event_transaction_batch_payter_eu:
       name: landing_etl_charger_payment_terminal_event_transaction_batch_payter_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -1502,7 +1715,12 @@ resources:
   jobs:
     landing_etl_charger_payment_terminal_event_transaction_batch_payter_na:
       name: landing_etl_charger_payment_terminal_event_transaction_batch_payter_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -1540,7 +1758,12 @@ resources:
   jobs:
     landing_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu:
       name: landing_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 1/1 * ? *"
         timezone_id: "UTC"
@@ -1567,7 +1790,12 @@ resources:
   jobs:
     landing_etl_charger_payment_terminal_incomplete_transaction_batch_payter_na:
       name: landing_etl_charger_payment_terminal_incomplete_transaction_batch_payter_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 1/1 * ? *"
         timezone_id: "UTC"
@@ -1595,7 +1823,12 @@ resources:
   jobs:
     landing_etl_charger_session_authorisation_srsna_msp_nni_apac:
       name: landing_etl_charger_session_authorisation_srsna_msp_nni_apac
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/30 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -1622,7 +1855,12 @@ resources:
   jobs:
     landing_etl_charger_session_authorisation_srsna_msp_nni_na:
       name: landing_etl_charger_session_authorisation_srsna_msp_nni_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/30 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -1649,7 +1887,12 @@ resources:
   jobs:
     optimise_and_vacuum_tables:
       name: optimise_and_vacuum_tables
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 5/2 * * ?"
         timezone_id: "UTC"
@@ -1683,7 +1926,12 @@ resources:
   jobs:
     powerbi_refresh_service:
       name: powerbi_refresh_service
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: refresh_dataset
         new_cluster: ${var.custom_clusters.pipeline-cluster-config}
@@ -1716,7 +1964,12 @@ resources:
   jobs:
     raw_etl_charger_master_sky_shell_batch:
       name: raw_etl_charger_master_sky_shell_batch
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 7 * * ?"
         timezone_id: "UTC"
@@ -2072,7 +2325,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_event_batch_driivz_shell_eu:
       name: raw_etl_charger_ocpp_event_batch_driivz_shell_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_event_batch_driivz_shell_eu"
         notebook_task:
@@ -2099,7 +2359,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_event_batch_driivz_ubitricity_apex_eu:
       name: raw_etl_charger_ocpp_event_batch_driivz_ubitricity_apex_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_event_batch_driivz_ubitricity_apex_eu"
         notebook_task:
@@ -2126,7 +2393,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_event_batch_driivz_ubitricity_eu:
       name: raw_etl_charger_ocpp_event_batch_driivz_ubitricity_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_event_batch_driivz_ubitricity_eu"
         notebook_task:
@@ -2153,7 +2427,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_batch_driivz_shell_eu:
       name: raw_etl_charger_ocpp_raw_batch_driivz_shell_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_batch_driivz_shell_eu"
         notebook_task:
@@ -2180,7 +2461,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex_eu:
       name: raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_apex_eu"
         notebook_task:
@@ -2207,7 +2495,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_eu:
       name: raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_batch_driivz_ubitricity_eu"
         notebook_task:
@@ -2234,7 +2529,12 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_batch_sky_files_reprocessed:
       name: raw_etl_charger_ocpp_raw_batch_sky_files_reprocessed
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_batch_sky_files_reprocessed"
         notebook_task:
@@ -2255,7 +2555,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_realtime_sky_ap:
       name: raw_etl_charger_ocpp_raw_realtime_sky_ap
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_realtime_sky_ap"
         notebook_task:
@@ -2280,7 +2587,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_realtime_sky_eu:
       name: raw_etl_charger_ocpp_raw_realtime_sky_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_realtime_sky_eu"
         notebook_task:
@@ -2306,7 +2620,14 @@ resources:
   jobs:
     raw_etl_charger_ocpp_raw_realtime_sky_na:
       name: raw_etl_charger_ocpp_raw_realtime_sky_na
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_ocpp_raw_realtime_sky_na"
         notebook_task:
@@ -2331,7 +2652,12 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_card_read_event_batch_sky_eu:
       name: raw_etl_charger_payment_terminal_card_read_event_batch_sky_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2361,7 +2687,12 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_card_read_event_batch_sky_na:
       name: raw_etl_charger_payment_terminal_card_read_event_batch_sky_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2391,7 +2722,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_event_batch_payter_eu:
       name: raw_etl_charger_payment_terminal_event_batch_payter_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_event_batch_payter_eu"
         notebook_task:
@@ -2415,7 +2753,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_event_batch_payter_na:
       name: raw_etl_charger_payment_terminal_event_batch_payter_na
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_event_batch_payter_na"
         notebook_task:
@@ -2439,7 +2784,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu:
       name: raw_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_incomplete_transaction_batch_payter_eu"
         notebook_task:
@@ -2463,7 +2815,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_incomplete_transaction_batch_payter_na:
       name: raw_etl_charger_payment_terminal_incomplete_transaction_batch_payter_na
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_incomplete_transaction_batch_payter_na"
         notebook_task:
@@ -2487,7 +2846,12 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_status_batch_sky_eu:
       name: raw_etl_charger_payment_terminal_status_batch_sky_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 5 0 * * ?"
         timezone_id: "UTC"
@@ -2516,7 +2880,12 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_status_batch_sky_na:
       name: raw_etl_charger_payment_terminal_status_batch_sky_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 5 0 * * ?"
         timezone_id: "UTC"
@@ -2545,7 +2914,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_status_realtime_payter_eu:
       name: raw_etl_charger_payment_terminal_status_realtime_payter_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_status_realtime_payter_eu"
         notebook_task:
@@ -2571,7 +2947,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_transaction_batch_payter_eu:
       name: raw_etl_charger_payment_terminal_transaction_batch_payter_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_transaction_batch_payter_eu"
         notebook_task:
@@ -2595,7 +2978,14 @@ resources:
   jobs:
     raw_etl_charger_payment_terminal_transaction_batch_payter_na:
       name: raw_etl_charger_payment_terminal_transaction_batch_payter_na
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_payment_terminal_transaction_batch_payter_na"
         notebook_task:
@@ -2619,7 +3009,12 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srs_msp_sky_core_eur:
       name: raw_etl_charger_session_authorisation_srs_msp_sky_core_eur
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2649,7 +3044,14 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srseu_msp_app_adhoc:
       name: raw_etl_charger_session_authorisation_srseu_msp_app_adhoc
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_session_authorisation_srseu_msp_app_adhoc"
         notebook_task:
@@ -2673,7 +3075,14 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srseu_msp_rfid:
       name: raw_etl_charger_session_authorisation_srseu_msp_rfid
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_session_authorisation_srseu_msp_rfid"
         notebook_task:
@@ -2696,7 +3105,14 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srsna_msp_cxm:
       name: raw_etl_charger_session_authorisation_srsna_msp_cxm
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_session_authorisation_srsna_msp_cxm"
         notebook_task:
@@ -2720,7 +3136,12 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srsna_msp_nni_apac:
       name: raw_etl_charger_session_authorisation_srsna_msp_nni_apac
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/30 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2748,7 +3169,12 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srsna_msp_nni_na:
       name: raw_etl_charger_session_authorisation_srsna_msp_nni_na
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/30 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2776,7 +3202,12 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srsna_msp_sky_core:
       name: raw_etl_charger_session_authorisation_srsna_msp_sky_core
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2806,7 +3237,12 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srsna_msp_sky_core_apac:
       name: raw_etl_charger_session_authorisation_srsna_msp_sky_core_apac
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/15 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -2836,7 +3272,12 @@ resources:
   jobs:
     test_msp_source_monitoring:
       name: test_msp_source_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
           quartz_cron_expression: "0 30 5 * * ?"
           timezone_id: "UTC"
@@ -3193,7 +3634,12 @@ resources:
   jobs:
     test_ocpp_batch_source_monitoring:
       name: test_ocpp_batch_source_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
           quartz_cron_expression: "0 0 6 * * ?"
           timezone_id: "UTC"
@@ -3490,7 +3936,12 @@ resources:
   jobs:
     test_ocpp_driivz_source_monitoring:
       name: test_ocpp_driivz_source_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
           quartz_cron_expression: "0 30 6 * * ?"
           timezone_id: "UTC"
@@ -3787,7 +4238,12 @@ resources:
   jobs:
     test_payter_events_source_monitoring:
       name: test_payter_events_source_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
           quartz_cron_expression: "0 0 5 * * ?"
           timezone_id: "UTC"
@@ -3992,7 +4448,12 @@ resources:
   jobs:
     test_payter_status_source_monitoring:
       name: test_payter_status_source_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
           quartz_cron_expression: "0 0 4 * * ?"
           timezone_id: "UTC"
@@ -4197,7 +4658,12 @@ resources:
   jobs:
     test_payter_transactions_source_monitoring:
       name: test_payter_transactions_source_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
           quartz_cron_expression: "0 30 4 * * ?"
           timezone_id: "UTC"
@@ -4404,7 +4870,10 @@ resources:
   jobs:
     evec_-_automated_action_service:
       name: EVEC - Automated Action Service
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 6/10 * * * ?"
         timezone_id: "UTC"
@@ -4436,7 +4905,10 @@ resources:
   jobs:
     evec_-_charger_alert_auto_allocation_service:
       name: EVEC - Charger Alert Auto Allocation Service
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: 
           {% if env[ "DATABRICKS_ENVIRONMENT" ] == "prod" %} "0 0/10 * * * ?" {% else %} "0 0/10 * * * ?" {% endif %}
@@ -4463,7 +4935,10 @@ resources:
   jobs:
     charger_alert_action_email_send_evec:
       name: charger_alert_action_email_send_evec
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "4 0/20 * * * ?"
         timezone_id: "UTC"
@@ -4567,7 +5042,10 @@ resources:
   jobs:
     charger_mno_alerts:
       name: charger_mno_alerts
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -4616,7 +5094,10 @@ resources:
   jobs:
     charger_payment_terminal_alerts:
       name: charger_payment_terminal_alerts
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 5/10 * * * ?"
         timezone_id: "UTC"
@@ -4728,7 +5209,10 @@ resources:
   jobs:
     euh_charger_alert_100100100_charger_faulted_batch_close:
       name: euh_charger_alert_100100100_charger_faulted_batch_close
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 5/5 * * * ?"
         timezone_id: "UTC"
@@ -4753,7 +5237,10 @@ resources:
   jobs:
     euh_charger_alert_100100100_charger_faulted_realtime_create:
       name: euh_charger_alert_100100100_charger_faulted_realtime_create
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       tasks:
       - task_key: "euh_charger_alert_100100100_charger_faulted_realtime_create"
         notebook_task:
@@ -4778,7 +5265,10 @@ resources:
   jobs:
     euh_charger_alert_100200100_charger_cable_cut_realtime_create:
       name: euh_charger_alert_100200100_charger_cable_cut_realtime_create
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       tasks:
       - task_key: "euh_charger_alert_100200100_charger_cable_cut_realtime_create"
         notebook_task:
@@ -4803,7 +5293,10 @@ resources:
   jobs:
     euh_charger_alert_100300400_charger_inoperative_verfication_close:
       name: euh_charger_alert_100300400_charger_inoperative_verfication_close
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 6/10 * * * ?"
         timezone_id: "UTC"
@@ -4838,7 +5331,10 @@ resources:
   jobs:
     euh_charger_alert_100300400_inoperative_alerts_auto_generation_realtime_create:
       name: euh_charger_alert_100300400_inoperative_alerts_auto_generation_realtime_create
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       tasks:
       - task_key: "euh_charger_alert_100300400_inoperative_alerts_auto_generation_realtime_create"
         notebook_task:
@@ -4865,7 +5361,10 @@ resources:
   jobs:
     euh_charger_alert_100600100_data_feed_interruption_batch:
       name: euh_charger_alert_100600100_data_feed_interruption_batch
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       tasks:
       - task_key: "euh_charger_alert_100600100_data_feed_interruption_batch"
         notebook_task:
@@ -4886,7 +5385,10 @@ resources:
   jobs:
     euh_charger_alert_150100100_charger_low_csr:
       name: euh_charger_alert_150100100_charger_low_csr
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 30 2 * * ?"
         timezone_id: "UTC"
@@ -4932,7 +5434,10 @@ resources:
   jobs:
     euh_charger_alert_200100100_charger_snooze_batch_close:
       name: euh_charger_alert_200100100_charger_snooze_batch_close
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 */10 * * * ?"
         timezone_id: "UTC"
@@ -4967,7 +5472,10 @@ resources:
   jobs:
     euh_charger_alert_datafeed_charger_offline_batch:
       name: euh_charger_alert_datafeed_charger_offline_batch
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       schedule:
         quartz_cron_expression: "0 5/5 * * * ?"
         timezone_id: "UTC"
@@ -4999,7 +5507,10 @@ resources:
   jobs:
     euh_charger_alert_decomissioned_close_batch:
       name: euh_charger_alert_decomissioned_close_batch
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       tasks:
       - task_key: "euh_charger_alert_decomissioned_close_batch"
         notebook_task:
@@ -5020,7 +5531,10 @@ resources:
   jobs:
     euh_charger_alert_old_payment_terminal_close_batch:
       name: euh_charger_alert_old_payment_terminal_close_batch
-      <<: *default-alerts-workflow-config
+      max_concurrent_runs: 4
+      min_retry_interval_millis: 300000
+      permissions: ${var.alerts_permissions}
+      email_notifications: ${var.alerts_email_notifications}
       tasks:
       - task_key: "euh_charger_alert_old_payment_terminal_close_batch"
         notebook_task:
@@ -5041,7 +5555,14 @@ resources:
   jobs:
     euh_etl_charger_connectivity_sim_event_core_eseye:
       name: euh_etl_charger_connectivity_sim_event_core_eseye
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_connectivity_sim_event_core_eseye"
         notebook_task:
@@ -5064,7 +5585,14 @@ resources:
   jobs:
     euh_etl_charger_connectivity_sim_event_unified_eseye_batch:
       name: euh_etl_charger_connectivity_sim_event_unified_eseye_batch
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_connectivity_sim_eseye_netflow"
         notebook_task:
@@ -5107,7 +5635,12 @@ resources:
   jobs:
     euh_etl_charger_ocpp_config_key_master_upload:
       name: euh_etl_charger_ocpp_config_key_master_upload
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: "euh_etl_charger_ocpp_config_key_master_upload"
         notebook_task:
@@ -5128,7 +5661,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_realtime_summary:
       name: euh_etl_charger_ocpp_realtime_summary
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_realtime_summary"
         notebook_task:
@@ -5152,7 +5692,14 @@ resources:
   jobs:
     raw_etl_charger_connectivity_sim_batch_eseye:
       name: raw_etl_charger_connectivity_sim_batch_eseye
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "raw_etl_charger_connectivity_sim_eseye_netflow"
         notebook_task:
@@ -5194,7 +5741,12 @@ resources:
   jobs:
     raw_etl_charger_ocpp_config_key_master_upload:
       name: raw_etl_charger_ocpp_config_key_master_upload
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: "raw_etl_charger_ocpp_config_key_master_upload"
         notebook_task:
@@ -5215,7 +5767,12 @@ resources:
   jobs:
     raw_etl_charger_vendor_error_code:
       name: raw_etl_charger_vendor_error_code
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: "raw_etl_charger_vendor_error_code"
         notebook_task:
@@ -5236,7 +5793,12 @@ resources:
   jobs:
     raw_etl_mapping_charger_manufacturer_model_unified:
       name: raw_etl_mapping_charger_manufacturer_model_unified
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: "raw_etl_mapping_charger_manufacturer_model_unified"
         notebook_task:
@@ -5259,7 +5821,12 @@ resources:
   jobs:
     materialise_view_tables_sibyl:
       name: materialise_view_tables_sibyl
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 9 ? * SAT,SUN"
         timezone_id: "UTC"
@@ -5284,7 +5851,12 @@ resources:
   jobs:
     sibyl_data_refresh_acxiom:
       name: sibyl_data_refresh_acxiom
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: acxiom_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5310,7 +5882,12 @@ resources:
   jobs:
     sibyl_data_refresh_drivetime_road_buffer_polygons:
       name: sibyl_data_refresh_drivetime_road_buffer_polygons
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: rbp_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5336,7 +5913,12 @@ resources:
   jobs:
     sibyl_data_refresh_etl_osm:
       name: sibyl_data_refresh_etl_osm
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: osm_docker_job_cluster
           new_cluster: ${var.custom_clusters.webdriver-batch-workflow-cluster-config}
@@ -5373,7 +5955,12 @@ resources:
   jobs:
     sibyl_data_refresh_gmap:
       name: sibyl_data_refresh_gmap
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: gmap_job_cluster
           new_cluster: ${var.custom_clusters.big-batch-workflow-cluster-config}
@@ -5397,7 +5984,12 @@ resources:
   jobs:
     sibyl_data_refresh_model_snapshot:
       name: sibyl_data_refresh_model_snapshot
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: model_snapshot_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5424,7 +6016,12 @@ resources:
   jobs:
     sibyl_data_refresh_refresh_check:
       name: sibyl_data_refresh_refresh_check
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: refresh_check_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5451,7 +6048,12 @@ resources:
   jobs:
     sibyl_data_refresh_vehicle_registration:
       name: sibyl_data_refresh_vehicle_registration
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: vehicle_registration_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5477,7 +6079,12 @@ resources:
   jobs:
     sibyl_regular_charger_location_drivetime_intersect:
       name: sibyl_regular_charger_location_drivetime_intersect
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 16 ? * SAT"
         timezone_id: "UTC"
@@ -5507,7 +6114,12 @@ resources:
   jobs:
     sibyl_regular_charger_location_geo_intersect:
       name: sibyl_regular_charger_location_geo_intersect
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 16 ? * FRI"
         timezone_id: "UTC"
@@ -5539,7 +6151,12 @@ resources:
   jobs:
     sibyl_regular_drivetime_geo_intersect:
       name: sibyl_regular_drivetime_geo_intersect
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: dgi_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5566,7 +6183,12 @@ resources:
   jobs:
     sibyl_regular_here_location_drivetime_polygons:
       name: sibyl_regular_here_location_drivetime_polygons
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: here_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5598,7 +6220,12 @@ resources:
   jobs:
     sibyl_regular_location_geo_intersect:
       name: sibyl_regular_location_geo_intersect
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 16 ? * FRI"
         timezone_id: "UTC"
@@ -5630,7 +6257,12 @@ resources:
   jobs:
     sibyl_scoring_bev_growth:
       name: sibyl_scoring_bev_growth
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: bev_growth_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5657,7 +6289,12 @@ resources:
   jobs:
     sibyl_scoring_demographic_attributes:
       name: sibyl_scoring_demographic_attributes
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: demographic_attributes_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5694,7 +6331,12 @@ resources:
   jobs:
     sibyl_scoring_destinations:
       name: sibyl_scoring_destinations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: destinations_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5720,7 +6362,12 @@ resources:
   jobs:
     sibyl_scoring_evse_competition:
       name: sibyl_scoring_evse_competition
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: evse_competition_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5747,7 +6394,12 @@ resources:
   jobs:
     sibyl_scoring_existing_ev_registrations:
       name: sibyl_scoring_existing_ev_registrations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: existing_ev_registrations_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5784,7 +6436,12 @@ resources:
   jobs:
     sibyl_scoring_existing_low_emission_zones:
       name: sibyl_scoring_existing_low_emission_zones
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: existing_low_emission_zones_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5811,7 +6468,12 @@ resources:
   jobs:
     sibyl_scoring_future_ev_potential:
       name: sibyl_scoring_future_ev_potential
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: future_ev_potential_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5838,7 +6500,12 @@ resources:
   jobs:
     sibyl_scoring_refuelling:
       name: sibyl_scoring_refuelling
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: refuelling_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5865,7 +6532,12 @@ resources:
   jobs:
     sibyl_scoring_shell_charging_potential:
       name: sibyl_scoring_shell_charging_potential
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: shell_charging_potential_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5902,7 +6574,12 @@ resources:
   jobs:
     sibyl_scoring_traffic_counts:
       name: sibyl_scoring_traffic_counts
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: traffic_counts_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5929,7 +6606,12 @@ resources:
   jobs:
     sibyl_scoring_transient_bev_registration:
       name: sibyl_scoring_transient_bev_registration
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: transient_bev_registration_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5956,7 +6638,12 @@ resources:
   jobs:
     sibyl_scoring_transient_evse_competition:
       name: sibyl_scoring_transient_evse_competition
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: transient_evse_competition_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -5983,7 +6670,12 @@ resources:
   jobs:
     sibyl_scoring_transient_road_network:
       name: sibyl_scoring_transient_road_network
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: transient_road_network_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -6010,7 +6702,12 @@ resources:
   jobs:
     sibyl_scoring_zev_mandate_states:
       name: sibyl_scoring_zev_mandate_states
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: zev_mandate_states_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -6039,7 +6736,12 @@ resources:
   jobs:
     emob_global_kpi_appfollow:
       name: emob_global_kpi_appfollow
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 10 10 * ?"
         timezone_id: "UTC"
@@ -6081,7 +6783,12 @@ resources:
   jobs:
     emob_global_kpi_chargepoints:
       name: emob_global_kpi_chargepoints
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 18 13 * ?"
         timezone_id: "UTC"
@@ -6194,7 +6901,12 @@ resources:
   jobs:
     emob_global_kpi_customer:
       name: emob_global_kpi_customer
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 18 1 * ?"
         timezone_id: "UTC"
@@ -6416,7 +7128,12 @@ resources:
   jobs:
     emob_global_kpi_energy:
       name: emob_global_kpi_energy
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 3 * ?"
         timezone_id: "UTC"
@@ -6530,7 +7247,12 @@ resources:
   jobs:
     emob_global_kpi_margin:
       name: emob_global_kpi_margin
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 23 * * ?"
         timezone_id: "UTC"
@@ -6603,7 +7325,12 @@ resources:
   jobs:
     emob_global_kpi_payment:
       name: emob_global_kpi_payment
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 3 * ?"
         timezone_id: "UTC"
@@ -6655,7 +7382,12 @@ resources:
   jobs:
     emob_global_kpi_roaming_network:
       name: emob_global_kpi_roaming_network
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 12 * * ?"
         timezone_id: "UTC"
@@ -6687,7 +7419,12 @@ resources:
   jobs:
     etl_charger_event_master_plugshare_api:
       name: etl_charger_event_master_plugshare_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 9 * * ?"
         timezone_id: "UTC"
@@ -6824,7 +7561,12 @@ resources:
   jobs:
     etl_charger_location_cxm_kafka:
       name: etl_charger_location_cxm_kafka
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 * * ?"
         timezone_id: "UTC"
@@ -6910,7 +7652,12 @@ resources:
   jobs:
     etl_charger_location_event_shell_recharge_feedback_api:
       name: etl_charger_location_event_shell_recharge_feedback_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 5 * * ?"
         timezone_id: "UTC"
@@ -6954,7 +7701,12 @@ resources:
   jobs:
     etl_charger_master_afdc_api:
       name: etl_charger_master_afdc_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 18 * * ?"
         timezone_id: "UTC"
@@ -7020,7 +7772,12 @@ resources:
   jobs:
     etl_charger_master_bosch_api:
       name: etl_charger_master_bosch_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 * * ?"
         timezone_id: "UTC"
@@ -7069,7 +7826,12 @@ resources:
   jobs:
     etl_charger_master_cxm_api:
       name: etl_charger_master_cxm_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 ? * MON"
         timezone_id: "UTC"
@@ -7186,7 +7948,12 @@ resources:
   jobs:
     etl_charger_master_cxm_kafka:
       name: etl_charger_master_cxm_kafka
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 * * ?"
         timezone_id: "UTC"
@@ -7284,7 +8051,12 @@ resources:
   jobs:
     etl_charger_master_driivz_shell_api:
       name: etl_charger_master_driivz_shell_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 1 * * ?"
         timezone_id: "UTC"
@@ -7397,7 +8169,12 @@ resources:
   jobs:
     etl_charger_master_driivz_ubitricity_apex_api:
       name: etl_charger_master_driivz_ubitricity_apex_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 2 * * ?"
         timezone_id: "UTC"
@@ -7550,7 +8327,12 @@ resources:
   jobs:
     etl_charger_master_driivz_ubitricity_api:
       name: etl_charger_master_driivz_ubitricity_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 2 * * ?"
         timezone_id: "UTC"
@@ -7702,7 +8484,12 @@ resources:
   jobs:
     etl_charger_master_ecomovement_api:
       name: etl_charger_master_ecomovement_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 8 ? * FRI"
         timezone_id: "UTC"
@@ -7809,7 +8596,12 @@ resources:
   jobs:
     etl_charger_master_eflux_api:
       name: etl_charger_master_eflux_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 3 * * ?"
         timezone_id: "UTC"
@@ -7922,7 +8714,12 @@ resources:
   jobs:
     etl_charger_master_enbw_api:
       name: etl_charger_master_enbw_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 3 * * ?"
         timezone_id: "UTC"
@@ -8074,7 +8871,12 @@ resources:
   jobs:
     etl_charger_master_enovos_sftp:
       name: etl_charger_master_enovos_sftp
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 14 * * ?"
         timezone_id: "UTC"
@@ -8122,7 +8924,12 @@ resources:
   jobs:
     etl_charger_master_greenlots_apac_api:
       name: etl_charger_master_greenlots_apac_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 18 * * ?"
         timezone_id: "UTC"
@@ -8216,7 +9023,12 @@ resources:
   jobs:
     etl_charger_master_greenlots_api:
       name: etl_charger_master_greenlots_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 8 * * ?"
         timezone_id: "UTC"
@@ -8340,7 +9152,12 @@ resources:
   jobs:
     etl_charger_master_greenlots_eu_api:
       name: etl_charger_master_greenlots_eu_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 * * ?"
         timezone_id: "UTC"
@@ -8434,7 +9251,12 @@ resources:
   jobs:
     etl_charger_master_greenlots_na_roaming_api:
       name: etl_charger_master_greenlots_na_roaming_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 45 10 * * ?"
         timezone_id: "UTC"
@@ -8548,7 +9370,12 @@ resources:
   jobs:
     etl_charger_master_instavolt_api:
       name: etl_charger_master_instavolt_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 6 * 3 ?"
         timezone_id: "UTC"
@@ -8624,7 +9451,12 @@ resources:
   jobs:
     etl_charger_master_ionity_api:
       name: etl_charger_master_ionity_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 7 ? * WED"
         timezone_id: "UTC"
@@ -8688,7 +9520,12 @@ resources:
   jobs:
     etl_charger_master_kenter_api:
       name: etl_charger_master_kenter_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 15 * * ?"
         timezone_id: "UTC"
@@ -8764,7 +9601,12 @@ resources:
   jobs:
     etl_charger_master_newmotion_api:
       name: etl_charger_master_newmotion_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 * * ?"
         timezone_id: "UTC"
@@ -8879,7 +9721,12 @@ resources:
   jobs:
     etl_charger_master_ocm_api:
       name: etl_charger_master_ocm_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 5 ? * TUE"
         timezone_id: "UTC"
@@ -8944,7 +9791,12 @@ resources:
   jobs:
     etl_charger_master_ptp_api:
       name: etl_charger_master_ptp_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -9017,7 +9869,12 @@ resources:
   jobs:
     etl_charger_master_rdw_api:
       name: etl_charger_master_rdw_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -9063,7 +9920,12 @@ resources:
   jobs:
     etl_charger_master_shell_recharge_turkey_api:
       name: etl_charger_master_shell_recharge_turkey_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 21 * * ?"
         timezone_id: "UTC"
@@ -9202,7 +10064,12 @@ resources:
   jobs:
     etl_charger_master_spirii_api:
       name: etl_charger_master_spirii_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 23 * * ?"
         timezone_id: "UTC"
@@ -9289,7 +10156,12 @@ resources:
   jobs:
     etl_charger_master_statiq_api:
       name: etl_charger_master_statiq_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 19 * * ?"
         timezone_id: "UTC"
@@ -9466,7 +10338,12 @@ resources:
   jobs:
     etl_charger_master_uberall_api:
       name: etl_charger_master_uberall_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 5 ? * MON"
         timezone_id: "UTC"
@@ -9601,7 +10478,12 @@ resources:
   jobs:
     etl_charger_master_uberall_comments_api:
       name: etl_charger_master_uberall_comments_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0/12 * * ?"
         timezone_id: "UTC"
@@ -9659,7 +10541,12 @@ resources:
   jobs:
     etl_charger_master_zapmap_comments_api:
       name: etl_charger_master_zapmap_comments_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0/4 * * ?"
         timezone_id: "UTC"
@@ -9703,7 +10590,12 @@ resources:
   jobs:
     etl_charger_session_cpo_newmotion_redshift:
       name: etl_charger_session_cpo_newmotion_redshift
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 8 * * ?"
         timezone_id: "UTC"
@@ -9757,7 +10649,12 @@ resources:
   jobs:
     etl_charger_session_cxm_kafka:
       name: etl_charger_session_cxm_kafka
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 1 * * ?"
         timezone_id: "UTC"
@@ -9819,7 +10716,12 @@ resources:
   jobs:
     etl_charger_session_driivz_shell_api:
       name: etl_charger_session_driivz_shell_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 2 * * ?"
         timezone_id: "UTC"
@@ -9871,7 +10773,12 @@ resources:
   jobs:
     etl_charger_session_driivz_ubitricity_apex_api:
       name: etl_charger_session_driivz_ubitricity_apex_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 25 3 * * ?"
         timezone_id: "UTC"
@@ -9929,7 +10836,12 @@ resources:
   jobs:
     etl_charger_session_driivz_ubitricity_api:
       name: etl_charger_session_driivz_ubitricity_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 3,7 * * ?"
         timezone_id: "UTC"
@@ -9986,7 +10898,12 @@ resources:
   jobs:
     etl_charger_session_greenlots_apac_api:
       name: etl_charger_session_greenlots_apac_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 19 * * ?"
         timezone_id: "UTC"
@@ -10040,7 +10957,12 @@ resources:
   jobs:
     etl_charger_session_greenlots_api:
       name: etl_charger_session_greenlots_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 9 * * ?"
         timezone_id: "UTC"
@@ -10103,7 +11025,12 @@ resources:
   jobs:
     etl_charger_session_greenlots_eu_api:
       name: etl_charger_session_greenlots_eu_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 1 * * ?"
         timezone_id: "UTC"
@@ -10157,7 +11084,12 @@ resources:
   jobs:
     etl_charger_session_greenlots_na_roaming_api:
       name: etl_charger_session_greenlots_na_roaming_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
         timezone_id: "UTC"
@@ -10211,7 +11143,12 @@ resources:
   jobs:
     etl_charger_session_msp_newmotion_redshift:
       name: etl_charger_session_msp_newmotion_redshift
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 45 8 * * ?"
         timezone_id: "UTC"
@@ -10275,7 +11212,12 @@ resources:
   jobs:
     etl_charger_session_parallel_charging_session:
       name: etl_charger_session_parallel_charging_session
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 5 * * ?"
         timezone_id: "UTC"
@@ -10305,7 +11247,12 @@ resources:
   jobs:
     etl_cpo_tariffs_sharepoint:
       name: etl_cpo_tariffs_sharepoint
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -10347,7 +11294,12 @@ resources:
   jobs:
     etl_dft_traffic_api:
       name: etl_dft_traffic_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -10399,7 +11351,12 @@ resources:
   jobs:
     etl_event_master_appfollow_api_android:
       name: etl_event_master_appfollow_api_android
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 * * ?"
         timezone_id: "UTC"
@@ -10507,7 +11464,12 @@ resources:
   jobs:
     etl_event_master_appfollow_api_ios:
       name: etl_event_master_appfollow_api_ios
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 * * ?"
         timezone_id: "UTC"
@@ -10615,7 +11577,12 @@ resources:
   jobs:
     etl_generic:
       name: etl_generic
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: euh_ingestion
         notebook_task:
@@ -10635,7 +11602,12 @@ resources:
   jobs:
     etl_investment_proposal_sharepoint:
       name: etl_investment_proposal_sharepoint
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 14 * * ?"
         timezone_id: "UTC"
@@ -10720,7 +11692,12 @@ resources:
   jobs:
     etl_lookup_tables:
       name: etl_lookup_tables
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -10898,7 +11875,12 @@ resources:
   jobs:
     etl_lookup_update_excel:
       name: etl_lookup_update_excel
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -10968,7 +11950,12 @@ resources:
   jobs:
     etl_mapping_cpo_switch:
       name: etl_mapping_cpo_switch
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 * * ?"
         timezone_id: "UTC"
@@ -11007,7 +11994,12 @@ resources:
   jobs:
     etl_mapping_functions:
       name: etl_mapping_functions
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 4 * * ?"
         timezone_id: "UTC"
@@ -11051,7 +12043,12 @@ resources:
   jobs:
     etl_mapping_msp_to_cpo:
       name: etl_mapping_msp_to_cpo
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 10 * * ?"
         timezone_id: "UTC"
@@ -11081,7 +12078,12 @@ resources:
   jobs:
     etl_mapping_pii_cxm_kafka:
       name: etl_mapping_pii_cxm_kafka
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 1 * * ?"
         timezone_id: "UTC"
@@ -11133,7 +12135,12 @@ resources:
   jobs:
     etl_mdm_sftp:
       name: etl_mdm_sftp
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 3 * * ?"
         timezone_id: "UTC"
@@ -11246,7 +12253,12 @@ resources:
   jobs:
     etl_newmotion_customer_loyalty_redshift:
       name: etl_newmotion_customer_loyalty_redshift
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 10 * * ?"
         timezone_id: "UTC"
@@ -11301,7 +12313,12 @@ resources:
   jobs:
     etl_newmotion_customer_token_redshift:
       name: etl_newmotion_customer_token_redshift
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 14 1 1/1 ? *"
         timezone_id: "UTC"
@@ -11360,7 +12377,12 @@ resources:
   jobs:
     etl_salesforce_na_hourly:
       name: etl_salesforce_na_hourly
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 * * * ?"
         timezone_id: "UTC"
@@ -11647,7 +12669,12 @@ resources:
   jobs:
     etl_salesforce_na_monthly:
       name: etl_salesforce_na_monthly
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 * ?"
         timezone_id: "UTC"
@@ -11868,7 +12895,12 @@ resources:
   jobs:
     etl_smg_voc_comments_sftp:
       name: etl_smg_voc_comments_sftp
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 10 10 * ?"
         timezone_id: "UTC"
@@ -11903,7 +12935,12 @@ resources:
   jobs:
     etl_taxi_gov_sg_api:
       name: etl_taxi_gov_sg_api
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 1 1 ? 2099"
         timezone_id: "UTC"
@@ -11945,7 +12982,12 @@ resources:
   jobs:
     etl_zapmap_adjust_comments_after_mapping:
       name: etl_zapmap_adjust_comments_after_mapping
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: zapmap_comments_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -11971,7 +13013,12 @@ resources:
   jobs:
     euh_mapping_date_calendar:
       name: euh_mapping_date_calendar
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: "euh_mapping_date_calendar"
         notebook_task:
@@ -11993,7 +13040,12 @@ resources:
   jobs:
     landing_file_deletion:
       name: landing_file_deletion
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: landing_file_deletion_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -12017,7 +13069,12 @@ resources:
   jobs:
     materialise_view_tables_emdh_core:
       name: materialise_view_tables_emdh_core
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 5,12,20 * * ?"
         timezone_id: "UTC"
@@ -12050,7 +13107,12 @@ resources:
   jobs:
     raw_etl_postgres:
       name: raw_etl_postgres
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: {{ custom.raw_etl_postgres_schedule(env['DATABRICKS_ENVIRONMENT']) }}
         timezone_id: "UTC"
@@ -12084,7 +13146,12 @@ resources:
   jobs:
     sftp_armed:
       name: sftp_armed
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 14 * * ?"
         timezone_id: "UTC"
@@ -12123,7 +13190,12 @@ resources:
   jobs:
     shelle_comment_categorisation:
       name: shelle_comment_categorisation
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 1/2 ? * *"
         timezone_id: "UTC"
@@ -12152,7 +13224,12 @@ resources:
   jobs:
     shelle_comment_categorisation_emio:
       name: shelle_comment_categorisation_emio
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 1/2 ? * *"
         timezone_id: "UTC"
@@ -12181,7 +13258,12 @@ resources:
   jobs:
     shelle_comment_translation:
       name: shelle_comment_translation
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0/2 * * ?"
         timezone_id: "UTC"
@@ -12210,7 +13292,12 @@ resources:
   jobs:
     table_records_deletion:
       name: table_records_deletion
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: table_records_deletion_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}
@@ -12236,7 +13323,12 @@ resources:
   jobs:
     test_sql_kpi_generic_expectations:
       name: test_sql_kpi_generic_expectations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 8 * * ?"
         timezone_id: "UTC"
@@ -12264,7 +13356,12 @@ resources:
   jobs:
     test_sql_mapping_generic_expectations:
       name: test_sql_mapping_generic_expectations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 45 7 1/1 * ? *"
         timezone_id: "UTC"
@@ -12292,7 +13389,12 @@ resources:
   jobs:
     test_sql_msp_generic_expectations:
       name: test_sql_msp_generic_expectations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 15 7 1/1 * ? *"
         timezone_id: "UTC"
@@ -12320,7 +13422,12 @@ resources:
   jobs:
     test_sql_ocpp_generic_expectations:
       name: test_sql_ocpp_generic_expectations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 7 * * ?"
         timezone_id: "UTC"
@@ -12348,7 +13455,12 @@ resources:
   jobs:
     test_sql_payter_generic_expectations:
       name: test_sql_payter_generic_expectations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 30 7 1/1 * ? *"
         timezone_id: "UTC"
@@ -12378,7 +13490,12 @@ resources:
   jobs:
     sandbox_table_cleanup_alert:
       name: Sandbox_Table_Cleanup_Alert
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 8 ? * 7#1"
         timezone_id: "UTC"
@@ -12402,7 +13519,12 @@ resources:
   jobs:
     alembic_refresh_permissions:
       name: alembic_refresh_permissions
-      <<: *alembic-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.alembic_permissions}
+      email_notifications: ${var.alembic_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.alembic_notification_settings}
       tasks:
         - task_key: "refresh_permissions"
           new_cluster: ${var.custom_clusters.pipeline-cluster-config}
@@ -12428,7 +13550,12 @@ resources:
   jobs:
     alembic_refresh_udfs:
       name: alembic_refresh_udfs
-      <<: *alembic-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.alembic_permissions}
+      email_notifications: ${var.alembic_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.alembic_notification_settings}
       tasks:
         - task_key: "refresh_udfs"
           new_cluster: ${var.custom_clusters.pipeline-cluster-config}
@@ -12475,7 +13602,12 @@ resources:
   jobs:
     alembic_refresh_views:
       name: alembic_refresh_views
-      <<: *alembic-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.alembic_permissions}
+      email_notifications: ${var.alembic_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.alembic_notification_settings}
       tasks:
         - task_key: refresh_views
           new_cluster: ${var.custom_clusters.pipeline-cluster-config}
@@ -12515,7 +13647,12 @@ resources:
   jobs:
     email_etl_pipeline_msgraph:
       name: email_etl_pipeline_msgraph
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0,10 ? * MON-FRI"
         timezone_id: "UTC"
@@ -12670,7 +13807,12 @@ resources:
   jobs:
     euh_charger_alert_allocation_rule:
       name: euh_charger_alert_allocation_rule
-      <<: *default-workflow-config  
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: charger_alert_allocation_rule
         notebook_task:
@@ -12697,7 +13839,12 @@ resources:
   jobs:
     euh_emai_daily:
       name: euh_emai_daily
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 0 ? * *"
         timezone_id: "UTC"
@@ -12722,7 +13869,12 @@ resources:
   jobs:
     euh_emai_weekly:
       name: euh_emai_weekly
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0 12 ? * SUN *"
         timezone_id: "UTC"
@@ -12747,7 +13899,14 @@ resources:
   jobs:
     euh_etl_charger_ocpp_generic_model_unified_realtime_eu:
       name: euh_etl_charger_ocpp_generic_model_unified_realtime_eu
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_ocpp_generic_model_unified_realtime_eu"
         notebook_task:
@@ -12770,7 +13929,14 @@ resources:
   jobs:
     euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_eur:
       name: euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_eur
-      <<: *default-continuous-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: null
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
+      continuous:
+        pause_status: ${var.conditionally_pause_dev_job}
       tasks:
       - task_key: "euh_etl_charger_session_authorisation_generic_model_unified_srsna_nni_eur"
         notebook_task:
@@ -12792,7 +13958,12 @@ resources:
   jobs:
     infra_cluster_monitoring:
       name: infra_cluster_monitoring
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       tasks:
       - task_key: list_local_disk_contents
         notebook_task:
@@ -12805,7 +13976,12 @@ resources:
   jobs:
     landing_etl_charger_event_batch_driivz_shell_eu:
       name: landing_etl_charger_event_batch_driivz_shell_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -12836,7 +14012,12 @@ resources:
   jobs:
     landing_etl_charger_event_batch_driivz_ubitricity:
       name: landing_etl_charger_event_batch_driivz_ubitricity
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -12867,7 +14048,12 @@ resources:
   jobs:
     landing_etl_charger_ocpp_raw_batch_driivz_shell_eu:
       name: landing_etl_charger_ocpp_raw_batch_driivz_shell_eu
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -12898,7 +14084,12 @@ resources:
   jobs:
     landing_etl_charger_ocpp_raw_batch_driivz_ubitricity:
       name: landing_etl_charger_ocpp_raw_batch_driivz_ubitricity
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/10 * * * ?"
         timezone_id: "UTC"
@@ -12929,7 +14120,12 @@ resources:
   jobs:
     landing_etl_charger_session_authorisation_srsna_msp_nni_eur:
       name: landing_etl_charger_session_authorisation_srsna_msp_nni_eur
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/30 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -12954,7 +14150,12 @@ resources:
   jobs:
     raw_etl_charger_session_authorisation_srsna_msp_nni_eur:
       name: raw_etl_charger_session_authorisation_srsna_msp_nni_eur
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       schedule:
         quartz_cron_expression: "0 0/30 * 1/1 * ? *"
         timezone_id: "UTC"
@@ -12980,7 +14181,12 @@ resources:
   jobs:
     sibyl_regular_closest_shell_site_calculations:
       name: sibyl_regular_closest_shell_site_calculations
-      <<: *default-workflow-config
+      max_concurrent_runs: 1
+      min_retry_interval_millis: 300000
+      permissions: ${var.default_permissions}
+      email_notifications: ${var.default_email_notifications}
+      webhook_notifications: ${var.default_webhook_notifications}
+      notification_settings: ${var.default_notification_settings}
       job_clusters:
         - job_cluster_key: cssc_job_cluster
           new_cluster: ${var.custom_clusters.batch-workflow-cluster-config}

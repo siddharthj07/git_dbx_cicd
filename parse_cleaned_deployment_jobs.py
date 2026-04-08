@@ -18,6 +18,47 @@ EMDL: Dict[str, str] = {}
 OTHER: Dict[str, str] = {}
 ALL_JOBS: Dict[str, str] = {}
 
+WORKFLOW_CONFIG_REPLACEMENTS = {
+    "default-workflow-config": [
+        "max_concurrent_runs: 1",
+        "min_retry_interval_millis: 300000",
+        "permissions: ${var.default_permissions}",
+        "email_notifications: ${var.default_email_notifications}",
+        "webhook_notifications: ${var.default_webhook_notifications}",
+        "notification_settings: ${var.default_notification_settings}",
+    ],
+    "default-continuous-workflow-config": [
+        "max_concurrent_runs: 1",
+        "min_retry_interval_millis: null",
+        "permissions: ${var.default_permissions}",
+        "email_notifications: ${var.default_email_notifications}",
+        "webhook_notifications: ${var.default_webhook_notifications}",
+        "notification_settings: ${var.default_notification_settings}",
+    ],
+    "default-continuous-workflow-config-raw-ocpp": [
+        "max_concurrent_runs: 1",
+        "min_retry_interval_millis: null",
+        "permissions: ${var.default_permissions}",
+        "email_notifications: ${var.default_email_notifications}",
+        "webhook_notifications: ${var.default_webhook_notifications}",
+        "notification_settings: ${var.default_notification_settings}",
+    ],
+    "default-alerts-workflow-config": [
+        "max_concurrent_runs: 4",
+        "min_retry_interval_millis: 300000",
+        "permissions: ${var.alerts_permissions}",
+        "email_notifications: ${var.alerts_email_notifications}",
+    ],
+    "alembic-workflow-config": [
+        "max_concurrent_runs: 1",
+        "min_retry_interval_millis: 300000",
+        "permissions: ${var.alembic_permissions}",
+        "email_notifications: ${var.alembic_email_notifications}",
+        "webhook_notifications: ${var.default_webhook_notifications}",
+        "notification_settings: ${var.alembic_notification_settings}",
+    ],
+}
+
 
 def load_source() -> Path:
     for path in SOURCE_CANDIDATES:
@@ -102,6 +143,35 @@ def extract_name_level_merges(block_lines: List[str], child_indent: int) -> str 
         if indent == child_indent and re.match(r"^\s*<<:\s*\*[A-Za-z0-9_-]+\s*$", line):
             merge_lines.append(line)
     return "\n".join(merge_lines) if merge_lines else None
+
+
+def expand_name_level_merges(merges: str | None) -> Tuple[str | None, str | None]:
+    if not merges:
+        return None, None
+
+    expanded: List[str] = []
+    default_continuous_pause_status: str | None = None
+
+    for line in merges.splitlines():
+        match = re.match(r"^(\s*)<<:\s*\*([A-Za-z0-9_-]+)\s*$", line)
+        if not match:
+            expanded.append(line)
+            continue
+
+        indent, anchor = match.groups()
+        replacement = WORKFLOW_CONFIG_REPLACEMENTS.get(anchor)
+        if replacement is None:
+            expanded.append(line)
+            continue
+
+        expanded.extend(f"{indent}{entry}" for entry in replacement)
+
+        if anchor == "default-continuous-workflow-config":
+            default_continuous_pause_status = "${var.conditionally_pause_dev_job}"
+        elif anchor == "default-continuous-workflow-config-raw-ocpp":
+            default_continuous_pause_status = '"PAUSED"'
+
+    return ("\n".join(expanded) if expanded else None), default_continuous_pause_status
 
 
 def replace_anchor_merges(section: str) -> str:
@@ -195,6 +265,7 @@ def build_job_yaml(
     job_name: str,
     name_level_merges: str | None,
     schedule: str | None,
+    injected_continuous: str | None,
     job_clusters: str | None,
     tasks: str | None,
     tags: str | None,
@@ -211,7 +282,7 @@ def build_job_yaml(
     if name_level_merges:
         lines.append(reindent_section(name_level_merges, old_indent, 6))
 
-    for section in (schedule, job_clusters, tasks, tags):
+    for section in (schedule, injected_continuous, job_clusters, tasks, tags):
         if not section:
             continue
         lines.append(reindent_section(section, old_indent, 6))
@@ -252,6 +323,9 @@ def parse_jobs(source_text: str) -> Tuple[Dict[str, Dict[str, str]], Dict[str, s
         job_key = normalize_job_key(job_name)
 
         name_level_merges = extract_name_level_merges(lines, child_indent)
+        name_level_merges, default_continuous_pause_status = expand_name_level_merges(
+            name_level_merges
+        )
         schedule = extract_section(lines, "schedule", child_indent)
         job_clusters = extract_section(lines, "job_clusters", child_indent)
         tasks = extract_section(lines, "tasks", child_indent)
@@ -265,11 +339,23 @@ def parse_jobs(source_text: str) -> Tuple[Dict[str, Dict[str, str]], Dict[str, s
         if tasks:
             tasks = replace_anchor_merges(tasks)
 
+        has_pause_status = any(
+            section and re.search(r"^\s*pause_status\s*:", section, flags=re.MULTILINE)
+            for section in (schedule, job_clusters, tasks, tags)
+        )
+        injected_continuous = None
+        if default_continuous_pause_status and not has_pause_status:
+            injected_continuous = (
+                f'{" " * child_indent}continuous:\n'
+                f'{" " * (child_indent + 2)}pause_status: {default_continuous_pause_status}'
+            )
+
         job_yaml = build_job_yaml(
             job_key,
             job_name,
             name_level_merges,
             schedule,
+            injected_continuous,
             job_clusters,
             tasks,
             tags,
