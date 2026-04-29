@@ -1,0 +1,25 @@
+run: |
+  set -euo pipefail
+
+  GROUPS=(
+    "${{ vars.DATABRICKS_GROUP_1 }}"
+    "${{ vars.DATABRICKS_GROUP_2 }}"
+    "${{ vars.DATABRICKS_GROUP_3 }}"
+    "${{ vars.DATABRICKS_GROUP_4 }}"
+    "${{ vars.DATABRICKS_GROUP_5 }}"
+    "${{ vars.DATABRICKS_GROUP_6 }}"
+  )
+
+  for GROUP in "${GROUPS[@]}"; do
+    if [ -z "$GROUP" ]; then
+      echo "Skipping empty group variable"
+      continue
+    fi
+
+    if databricks groups list --output json | jq -e --arg group "$GROUP" '.[] | select(.displayName == $group)' > /dev/null; then
+      echo "Group already exists: $GROUP"
+    else
+      echo "Creating group: $GROUP"
+      databricks groups create --display-name "$GROUP"
+    fi
+  done
